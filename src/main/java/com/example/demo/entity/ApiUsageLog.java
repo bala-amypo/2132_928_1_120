@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,8 +17,9 @@ public class ApiUsageLog {
     private Long id;
 
     @NotNull(message = "apiKey is required")
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "api_key_id", nullable = false)
+    @JsonIgnore
     private ApiKey apiKey;
 
     @NotBlank(message = "endpoint is required")
