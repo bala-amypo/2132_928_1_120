@@ -31,4 +31,17 @@ public class QuotaPlanController {
     }
 
     @GetMapping("/{id}")
-    public QuotaPlan getById(@Path
+    public QuotaPlan getById(@PathVariable @Min(1) Long id) {
+        return quotaPlanService.getQuotaPlanById(id);
+    }
+
+    @GetMapping
+    public List<QuotaPlan> getAll() {
+        return quotaPlanService.getAllPlans();
+    }
+
+    @PutMapping("/{id}/deactivate")
+    public QuotaPlan deactivate(@PathVariable @Min(1) Long id) {
+        return quotaPlanService.deactivateQuotaPlan(id);
+    }
+}

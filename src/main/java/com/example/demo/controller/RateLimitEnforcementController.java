@@ -17,3 +17,21 @@ public class RateLimitEnforcementController {
     private final RateLimitEnforcementService service;
 
     public RateLimitEnforcementController(RateLimitEnforcementService service) {
+        this.service = service;
+    }
+
+    @PostMapping
+    public RateLimitEnforcement create(@Valid @RequestBody RateLimitEnforcement enforcement) {
+        return service.createEnforcement(enforcement);
+    }
+
+    @GetMapping("/{id}")
+    public RateLimitEnforcement getById(@PathVariable @Min(1) Long id) {
+        return service.getEnforcementById(id);
+    }
+
+    @GetMapping("/key/{keyId}")
+    public List<RateLimitEnforcement> forKey(@PathVariable @Min(1) Long keyId) {
+        return service.getEnforcementsForKey(keyId);
+    }
+}
