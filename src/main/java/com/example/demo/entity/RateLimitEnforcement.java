@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -16,8 +17,9 @@ public class RateLimitEnforcement {
     private Long id;
 
     @NotNull(message = "apiKey is required")
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "api_key_id", nullable = false)
+    @JsonIgnore
     private ApiKey apiKey;
 
     @NotNull(message = "blockedAt is required")
