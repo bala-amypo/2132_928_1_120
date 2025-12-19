@@ -1,70 +1,66 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.KeyExemptionRequestDto;
 import com.example.demo.entity.ApiKey;
 import com.example.demo.entity.KeyExemption;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.ApiKeyRepository;
 import com.example.demo.repository.KeyExemptionRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.List;
 
 @Service
 public class KeyExemptionServiceImpl implements KeyExemptionService {
 
-    private final KeyExemptionRepository keyExemptionRepository;
-    private final ApiKeyRepository apiKeyRepository;
+    private final KeyExemptionRepository exemptionRepo;
+    private final ApiKeyRepository apiKeyRepo;
 
-    public KeyExemptionServiceImpl(KeyExemptionRepository keyExemptionRepository, ApiKeyRepository apiKeyRepository) {
-        this.keyExemptionRepository = keyExemptionRepository;
-        this.apiKeyRepository = apiKeyRepository;
+    public KeyExemptionServiceImpl(KeyExemptionRepository exemptionRepo, ApiKeyRepository apiKeyRepo) {
+        this.exemptionRepo = exemptionRepo;
+        this.apiKeyRepo = apiKeyRepo;
     }
 
     @Override
-    public KeyExemption createExemption(KeyExemption exemption) {
-        validate(exemption);
+    public KeyExemption createExemption(KeyExemptionRequestDto dto) {
+        ApiKey apiKey = apiKeyRepo.findById(dto.getApiKeyId())
+                .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found: " + dto.getApiKeyId()));
 
-        ApiKey key = apiKeyRepository.findById(exemption.getApiKey().getId())
-                .orElseThrow(() -> new RuntimeException("ResourceNotFound: api key not found"));
-        exemption.setApiKey(key);
-        return keyExemptionRepository.save(exemption);
+        KeyExemption ex = new KeyExemption();
+        ex.setApiKey(apiKey);
+        ex.setNotes(dto.getNotes());
+        ex.setUnlimitedAccess(Boolean.TRUE.equals(dto.getUnlimitedAccess()));
+        ex.setTemporaryExtensionLimit(dto.getTemporaryExtensionLimit());
+        ex.setValidUntil(dto.getValidUntil());
+
+        return exemptionRepo.save(ex);
     }
 
     @Override
-    public KeyExemption updateExemption(Long id, KeyExemption exemption) {
-        KeyExemption existing = keyExemptionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("ResourceNotFound: exemption not found"));
+    public KeyExemption updateExemption(Long id, KeyExemptionRequestDto dto) {
+        KeyExemption ex = exemptionRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("KeyExemption not found: " + id));
 
-        if (exemption.getNotes() != null) existing.setNotes(exemption.getNotes());
-        if (exemption.getUnlimitedAccess() != null) existing.setUnlimitedAccess(exemption.getUnlimitedAccess());
-        if (exemption.getTemporaryExtensionLimit() != null) existing.setTemporaryExtensionLimit(exemption.getTemporaryExtensionLimit());
-        if (exemption.getValidUntil() != null) existing.setValidUntil(exemption.getValidUntil());
+        ApiKey apiKey = apiKeyRepo.findById(dto.getApiKeyId())
+                .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found: " + dto.getApiKeyId()));
 
-        validate(existing);
-        return keyExemptionRepository.save(existing);
+        ex.setApiKey(apiKey);
+        ex.setNotes(dto.getNotes());
+        ex.setUnlimitedAccess(Boolean.TRUE.equals(dto.getUnlimitedAccess()));
+        ex.setTemporaryExtensionLimit(dto.getTemporaryExtensionLimit());
+        ex.setValidUntil(dto.getValidUntil());
+
+        return exemptionRepo.save(ex);
     }
 
     @Override
-    public KeyExemption getExemptionByKey(Long apiKeyId) {
-        return keyExemptionRepository.findByApiKey_Id(apiKeyId).stream().findFirst()
-                .orElseThrow(() -> new RuntimeException("ResourceNotFound: exemption not found for key"));
+    public KeyExemption getExemptionByKey(Long keyId) {
+        return exemptionRepo.findByApiKeyId(keyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Exemption not found for apiKeyId: " + keyId));
     }
 
     @Override
     public List<KeyExemption> getAllExemptions() {
-        return keyExemptionRepository.findAll();
-    }
-
-    private void validate(KeyExemption ex) {
-        if (ex.getApiKey() == null || ex.getApiKey().getId() == null) {
-            throw new RuntimeException("BadRequest: apiKey is required");
-        }
-        if (ex.getTemporaryExtensionLimit() != null && ex.getTemporaryExtensionLimit() < 0) {
-            throw new RuntimeException("BadRequest: temporaryExtensionLimit must be >= 0");
-        }
-        if (ex.getValidUntil() != null && !ex.getValidUntil().isAfter(Instant.now())) {
-            throw new RuntimeException("BadRequest: validUntil must be in the future");
-        }
-        if (ex.getUnlimitedAccess() == null) ex.setUnlimitedAccess(false);
+        return exemptionRepo.findAll();
     }
 }

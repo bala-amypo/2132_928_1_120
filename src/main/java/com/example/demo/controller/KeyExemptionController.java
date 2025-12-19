@@ -1,15 +1,13 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.KeyExemptionRequestDto;
 import com.example.demo.entity.KeyExemption;
 import com.example.demo.service.KeyExemptionService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Validated
 @RestController
 @RequestMapping("/api/key-exemptions")
 public class KeyExemptionController {
@@ -21,17 +19,17 @@ public class KeyExemptionController {
     }
 
     @PostMapping
-    public KeyExemption create(@Valid @RequestBody KeyExemption exemption) {
-        return service.createExemption(exemption);
+    public KeyExemption create(@Valid @RequestBody KeyExemptionRequestDto dto) {
+        return service.createExemption(dto);
     }
 
     @PutMapping("/{id}")
-    public KeyExemption update(@PathVariable @Min(1) Long id, @Valid @RequestBody KeyExemption exemption) {
-        return service.updateExemption(id, exemption);
+    public KeyExemption update(@PathVariable Long id, @Valid @RequestBody KeyExemptionRequestDto dto) {
+        return service.updateExemption(id, dto);
     }
 
     @GetMapping("/key/{keyId}")
-    public KeyExemption getByKey(@PathVariable @Min(1) Long keyId) {
+    public KeyExemption getByKey(@PathVariable Long keyId) {
         return service.getExemptionByKey(keyId);
     }
 
