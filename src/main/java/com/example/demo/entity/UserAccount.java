@@ -1,6 +1,10 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,14 +16,19 @@ public class UserAccount {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Email(message = "email must be valid")
+    @NotBlank(message = "email is required")
     @Column(nullable = false)
     private String email;
 
+    @NotBlank(message = "password is required")
+    @Size(min = 6, message = "password must be at least 6 characters")
     @Column(nullable = false)
     private String password;
 
+    @NotBlank(message = "role is required")
     @Column(nullable = false)
-    private String role; // e.g. ROLE_USER, ROLE_ADMIN
+    private String role; // ROLE_USER, ROLE_ADMIN
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

@@ -1,6 +1,10 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.time.Instant;
 
 @Entity
@@ -11,16 +15,21 @@ public class RateLimitEnforcement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "apiKey is required")
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "api_key_id", nullable = false)
     private ApiKey apiKey;
 
+    @NotNull(message = "blockedAt is required")
     @Column(nullable = false)
     private Instant blockedAt;
 
+    @NotNull(message = "limitExceededBy is required")
+    @Min(value = 1, message = "limitExceededBy must be >= 1")
     @Column(nullable = false)
     private Integer limitExceededBy;
 
+    @NotBlank(message = "message is required")
     @Column(nullable = false)
     private String message;
 

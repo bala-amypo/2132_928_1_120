@@ -1,6 +1,10 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.time.Instant;
 
 @Entity
@@ -11,14 +15,18 @@ public class QuotaPlan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "planName is required")
     @Column(nullable = false)
     private String planName;
 
+    @NotNull(message = "dailyLimit is required")
+    @Min(value = 1, message = "dailyLimit must be > 0")
     @Column(nullable = false)
     private Integer dailyLimit;
 
     private String description;
 
+    @NotNull(message = "active is required")
     @Column(nullable = false)
     private Boolean active = true;
 

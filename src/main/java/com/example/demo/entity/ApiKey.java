@@ -1,6 +1,10 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import java.time.Instant;
 
 @Entity
@@ -11,16 +15,21 @@ public class ApiKey {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "keyValue is required")
     @Column(nullable = false)
     private String keyValue;
 
+    @NotNull(message = "ownerId is required")
+    @Positive(message = "ownerId must be > 0")
     @Column(nullable = false)
     private Long ownerId;
 
+    @NotNull(message = "plan is required")
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "plan_id", nullable = false)
     private QuotaPlan plan;
 
+    @NotNull(message = "active is required")
     @Column(nullable = false)
     private Boolean active = true;
 
