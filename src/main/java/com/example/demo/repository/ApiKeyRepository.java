@@ -3,6 +3,9 @@ package com.example.demo.repository;
 import com.example.demo.entity.ApiKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface ApiKeyRepository extends JpaRepository<ApiKey, Long> {
-    long countByPlan_Id(Long planId);
+    Optional<ApiKey> findByKeyValue(String keyValue);
+    boolean existsByKeyValue(String keyValue);
 }
