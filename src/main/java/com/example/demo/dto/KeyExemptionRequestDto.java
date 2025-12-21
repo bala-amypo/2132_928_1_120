@@ -1,35 +1,37 @@
+// src/main/java/com/example/demo/dto/KeyExemptionRequestDto.java
 package com.example.demo.dto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.Instant;
 
 public class KeyExemptionRequestDto {
 
     @NotNull(message = "apiKeyId is required")
-    @Min(value = 1, message = "apiKeyId must be >= 1")
     private Long apiKeyId;
 
+    @Size(max = 1000, message = "notes max 1000 chars")
     private String notes;
 
     @NotNull(message = "unlimitedAccess is required")
     private Boolean unlimitedAccess;
 
-    @Min(value = 0, message = "temporaryExtensionLimit must be >= 0")
+    // can be null; if present must be >= 0 (validated in service)
     private Integer temporaryExtensionLimit;
 
-    @NotNull(message = "validUntil is required")
-    @Future(message = "validUntil must be in the future")
+    // can be null; if present must be in future (validated in service)
     private Instant validUntil;
 
-    public Long getApiKeyId() { return apiKeyId; }
-    public String getNotes() { return notes; }
-    public Boolean getUnlimitedAccess() { return unlimitedAccess; }
-    public Integer getTemporaryExtensionLimit() { return temporaryExtensionLimit; }
-    public Instant getValidUntil() { return validUntil; }
+    public KeyExemptionRequestDto() {}
 
+    public Long getApiKeyId() { return apiKeyId; }
     public void setApiKeyId(Long apiKeyId) { this.apiKeyId = apiKeyId; }
+    public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+    public Boolean getUnlimitedAccess() { return unlimitedAccess; }
     public void setUnlimitedAccess(Boolean unlimitedAccess) { this.unlimitedAccess = unlimitedAccess; }
+    public Integer getTemporaryExtensionLimit() { return temporaryExtensionLimit; }
     public void setTemporaryExtensionLimit(Integer temporaryExtensionLimit) { this.temporaryExtensionLimit = temporaryExtensionLimit; }
+    public Instant getValidUntil() { return validUntil; }
     public void setValidUntil(Instant validUntil) { this.validUntil = validUntil; }
 }

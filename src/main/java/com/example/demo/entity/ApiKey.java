@@ -1,52 +1,47 @@
+// src/main/java/com/example/demo/entity/ApiKey.java
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(
-    name="api_key",
-    uniqueConstraints = @UniqueConstraint(name="uk_api_key_value", columnNames="key_value")
-)
+@Table(name = "api_key")
 public class ApiKey {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="key_value", nullable=false, length=255)
+    @Column(name="key_value", nullable = false, unique = true, length = 255)
     private String keyValue;
 
-    @Column(name="owner_id", nullable=false)
+    @Column(name="owner_id", nullable = false)
     private Long ownerId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name="plan_id", nullable=false, foreignKey = @ForeignKey(name="fk_api_key_plan"))
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="plan_id", nullable = false)
     private QuotaPlan plan;
 
-    @Column(name="active", nullable=false)
+    @Column(nullable = false)
     private Boolean active = true;
 
-    @Column(name="created_at", nullable=false, updatable=false)
+    @Column(name="created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name="updated_at", nullable=false)
+    @Column(name="updated_at", nullable = false)
     private Instant updatedAt;
 
-    @PrePersist
-    void prePersist() {
-        Instant now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
-        if (active == null) active = true;
-    }
+    // IMPORTANT: prevent recursion / lazy proxy serialize
+    @JsonIgnore
+    @OneToMany(mappedBy = "apiKey", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<KeyExemption> exemptions = new ArrayList<>();
 
-    @PreUpdate
-    void preUpdate() {
-        updatedAt = Instant.now();
-    }
+    public ApiKey() {}
 
-    // getters & setters
+    // getters/setters
     public Long getId() { return id; }
     public String getKeyValue() { return keyValue; }
     public void setKeyValue(String keyValue) { this.keyValue = keyValue; }
@@ -57,5 +52,8 @@ public class ApiKey {
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
     public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public List<KeyExemption> getExemptions() { return exemptions; }
 }
