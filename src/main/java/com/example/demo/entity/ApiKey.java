@@ -1,17 +1,10 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.Instant;
 
 @Entity
 @Table(name = "api_key")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class ApiKey {
 
     @Id
@@ -24,13 +17,8 @@ public class ApiKey {
     @Column(name="owner_id", nullable = false)
     private Long ownerId;
 
-    // Many keys -> one plan
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "plan_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_api_key_quota_plan")
-    )
+    @JoinColumn(name = "plan_id", nullable = false)
     private QuotaPlan plan;
 
     @Column(nullable = false)
@@ -55,4 +43,20 @@ public class ApiKey {
         updatedAt = Instant.now();
         if (active == null) active = true;
     }
+
+    public Long getId() { return id; }
+    public String getKeyValue() { return keyValue; }
+    public Long getOwnerId() { return ownerId; }
+    public QuotaPlan getPlan() { return plan; }
+    public Boolean getActive() { return active; }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setKeyValue(String keyValue) { this.keyValue = keyValue; }
+    public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
+    public void setPlan(QuotaPlan plan) { this.plan = plan; }
+    public void setActive(Boolean active) { this.active = active; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }

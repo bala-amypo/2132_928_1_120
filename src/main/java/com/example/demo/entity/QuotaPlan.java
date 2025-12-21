@@ -1,8 +1,6 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,11 +10,6 @@ import java.util.List;
         name = "quota_plan",
         uniqueConstraints = @UniqueConstraint(name = "uk_quota_plan_plan_name", columnNames = "plan_name")
 )
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class QuotaPlan {
 
     @Id
@@ -41,7 +34,6 @@ public class QuotaPlan {
     @Column(name="updated_at", nullable = false)
     private Instant updatedAt;
 
-    // Relationship: One plan -> many ApiKeys
     @OneToMany(mappedBy = "plan", fetch = FetchType.LAZY)
     private List<ApiKey> apiKeys = new ArrayList<>();
 
@@ -58,4 +50,22 @@ public class QuotaPlan {
         updatedAt = Instant.now();
         if (active == null) active = true;
     }
+
+    public Long getId() { return id; }
+    public String getPlanName() { return planName; }
+    public Long getDailyLimit() { return dailyLimit; }
+    public String getDescription() { return description; }
+    public Boolean getActive() { return active; }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
+    public List<ApiKey> getApiKeys() { return apiKeys; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setPlanName(String planName) { this.planName = planName; }
+    public void setDailyLimit(Long dailyLimit) { this.dailyLimit = dailyLimit; }
+    public void setDescription(String description) { this.description = description; }
+    public void setActive(Boolean active) { this.active = active; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public void setApiKeys(List<ApiKey> apiKeys) { this.apiKeys = apiKeys; }
 }
