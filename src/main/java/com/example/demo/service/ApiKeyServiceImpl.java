@@ -1,86 +1,92 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.ApiKeyRequestDto;
+import com.example.demo.dto.ApiKeyUpdateDto;
 import com.example.demo.entity.ApiKey;
 import com.example.demo.entity.QuotaPlan;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.ApiKeyRepository;
 import com.example.demo.repository.QuotaPlanRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
 
 @Service
+@Transactional
 public class ApiKeyServiceImpl implements ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepository;
     private final QuotaPlanRepository quotaPlanRepository;
 
-    public ApiKeyServiceImpl(ApiKeyRepository apiKeyRepository, QuotaPlanRepository quotaPlanRepository) {
+    public ApiKeyServiceImpl(ApiKeyRepository apiKeyRepository,
+                             QuotaPlanRepository quotaPlanRepository) {
         this.apiKeyRepository = apiKeyRepository;
         this.quotaPlanRepository = quotaPlanRepository;
     }
 
     @Override
-    public ApiKey createApiKey(ApiKey key) {
-        if (key.getPlan() == null || key.getPlan().getId() == null) {
-            throw new RuntimeException("BadRequest: plan is required");
-        }
-        QuotaPlan plan = quotaPlanRepository.findById(key.getPlan().getId())
-                .orElseThrow(() -> new RuntimeException("ResourceNotFound: plan not found"));
+    public ApiKey create(ApiKeyRequestDto dto) {
 
-        if (Boolean.FALSE.equals(plan.getActive())) {
-            throw new RuntimeException("BadRequest: plan is inactive");
+        apiKeyRepository.findByKeyValue(dto.getKeyValue())
+                .ifPresent(x -> { throw new IllegalArgumentException("API key already exists: " + dto.getKeyValue()); });
+
+        QuotaPlan plan = quotaPlanRepository.findById(dto.getPlanId())
+                .orElseThrow(() -> new ResourceNotFoundException("QuotaPlan not found with id: " + dto.getPlanId()));
+
+        if (!plan.isActive()) {
+            throw new IllegalArgumentException("QuotaPlan is inactive. planId=" + plan.getId());
         }
+
+        ApiKey key = new ApiKey();
+        key.setKeyValue(dto.getKeyValue());
+        key.setOwnerId(dto.getOwnerId());
         key.setPlan(plan);
-        key.setCreatedAt(Instant.now());
-        key.setUpdatedAt(Instant.now());
-        if (key.getActive() == null) key.setActive(true);
+        key.setActive(dto.getActive() == null || dto.getActive());
+
         return apiKeyRepository.save(key);
     }
 
     @Override
-    public ApiKey updateApiKey(Long id, ApiKey key) {
-        ApiKey existing = getApiKeyById(id);
+    public ApiKey update(Long id, ApiKeyUpdateDto dto) {
 
-        if (key.getKeyValue() != null) existing.setKeyValue(key.getKeyValue());
-        if (key.getOwnerId() != null) existing.setOwnerId(key.getOwnerId());
-        if (key.getActive() != null) existing.setActive(key.getActive());
+        ApiKey existing = apiKeyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found with id: " + id));
 
-        if (key.getPlan() != null && key.getPlan().getId() != null) {
-            QuotaPlan plan = quotaPlanRepository.findById(key.getPlan().getId())
-                    .orElseThrow(() -> new RuntimeException("ResourceNotFound: plan not found"));
-            if (Boolean.FALSE.equals(plan.getActive())) {
-                throw new RuntimeException("BadRequest: plan is inactive");
-            }
-            existing.setPlan(plan);
+        QuotaPlan plan = quotaPlanRepository.findById(dto.getPlanId())
+                .orElseThrow(() -> new ResourceNotFoundException("QuotaPlan not found with id: " + dto.getPlanId()));
+
+        if (!plan.isActive()) {
+            throw new IllegalArgumentException("QuotaPlan is inactive. planId=" + plan.getId());
         }
 
-        existing.setUpdatedAt(Instant.now());
+        existing.setPlan(plan);
+
+        if (dto.getActive() != null) {
+            existing.setActive(dto.getActive());
+        }
+
         return apiKeyRepository.save(existing);
     }
 
     @Override
-    public ApiKey getApiKeyById(Long id) {
+    @Transactional(readOnly = true)
+    public ApiKey getById(Long id) {
         return apiKeyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("ResourceNotFound: api key not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found with id: " + id));
     }
 
     @Override
-    public ApiKey getApiKeyByValue(String keyValue) {
-        return apiKeyRepository.findByKeyValue(keyValue)
-                .orElseThrow(() -> new RuntimeException("ResourceNotFound: api key not found"));
-    }
-
-    @Override
-    public List<ApiKey> getAllApiKeys() {
+    @Transactional(readOnly = true)
+    public List<ApiKey> getAll() {
         return apiKeyRepository.findAll();
     }
 
     @Override
-    public ApiKey deactivateApiKey(Long id) {
-        ApiKey existing = getApiKeyById(id);
+    public ApiKey deactivate(Long id) {
+        ApiKey existing = apiKeyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found with id: " + id));
         existing.setActive(false);
-        existing.setUpdatedAt(Instant.now());
         return apiKeyRepository.save(existing);
     }
 }

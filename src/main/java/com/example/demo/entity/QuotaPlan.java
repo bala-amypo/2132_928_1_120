@@ -6,27 +6,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(
-        name = "quota_plan",
-        uniqueConstraints = @UniqueConstraint(name = "uk_quota_plan_plan_name", columnNames = "plan_name")
-)
+@Table(name = "quota_plans", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_plan_name", columnNames = "plan_name")
+})
 public class QuotaPlan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="plan_name", nullable = false, length = 100)
+    @Column(name="plan_name", nullable = false, length = 80)
     private String planName;
 
     @Column(name="daily_limit", nullable = false)
-    private Long dailyLimit;
+    private Integer dailyLimit;
 
     @Column(length = 255)
     private String description;
 
     @Column(nullable = false)
-    private Boolean active = true;
+    private boolean active = true;
 
     @Column(name="created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -34,38 +33,41 @@ public class QuotaPlan {
     @Column(name="updated_at", nullable = false)
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "plan", fetch = FetchType.LAZY)
+    // Optional: bi-directional mapping
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<ApiKey> apiKeys = new ArrayList<>();
 
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
-        if (active == null) active = true;
+        this.createdAt = now;
+        this.updatedAt = now;
     }
 
     @PreUpdate
     void preUpdate() {
-        updatedAt = Instant.now();
-        if (active == null) active = true;
+        this.updatedAt = Instant.now();
     }
 
+    // getters & setters
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
     public String getPlanName() { return planName; }
-    public Long getDailyLimit() { return dailyLimit; }
+    public void setPlanName(String planName) { this.planName = planName; }
+
+    public Integer getDailyLimit() { return dailyLimit; }
+    public void setDailyLimit(Integer dailyLimit) { this.dailyLimit = dailyLimit; }
+
     public String getDescription() { return description; }
-    public Boolean getActive() { return active; }
+    public void setDescription(String description) { this.description = description; }
+
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
-    public List<ApiKey> getApiKeys() { return apiKeys; }
 
-    public void setId(Long id) { this.id = id; }
-    public void setPlanName(String planName) { this.planName = planName; }
-    public void setDailyLimit(Long dailyLimit) { this.dailyLimit = dailyLimit; }
-    public void setDescription(String description) { this.description = description; }
-    public void setActive(Boolean active) { this.active = active; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public List<ApiKey> getApiKeys() { return apiKeys; }
     public void setApiKeys(List<ApiKey> apiKeys) { this.apiKeys = apiKeys; }
 }
