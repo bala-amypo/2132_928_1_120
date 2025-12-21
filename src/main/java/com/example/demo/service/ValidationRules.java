@@ -12,19 +12,15 @@ public final class ValidationRules {
     public static void requireActivePlan(QuotaPlan plan) {
         if (plan == null) throw new BadRequestException("Quota plan is required");
 
-        // ✅ boolean -> getter is isActive()
-        if (!plan.isActive()) {
+        Boolean active = plan.getActive();
+        if (active == null || !active) {
             throw new BadRequestException("Quota plan is inactive");
         }
 
-        if (plan.getDailyLimit() == null || plan.getDailyLimit() <= 0) {
+        Integer limit = plan.getDailyLimit();
+        if (limit == null || limit <= 0) {
             throw new BadRequestException("Quota plan dailyLimit must be > 0");
         }
-    }
-
-    public static void requireNotFutureTimestamp(Instant ts) {
-        if (ts == null) throw new BadRequestException("timestamp is required");
-        if (ts.isAfter(Instant.now())) throw new BadRequestException("timestamp cannot be in the future");
     }
 
     public static void validateExemption(KeyExemption ex) {
@@ -33,6 +29,7 @@ public final class ValidationRules {
         if (ex.getTemporaryExtensionLimit() != null && ex.getTemporaryExtensionLimit() < 0) {
             throw new BadRequestException("temporaryExtensionLimit must be >= 0");
         }
+
         if (ex.getValidUntil() != null && !ex.getValidUntil().isAfter(Instant.now())) {
             throw new BadRequestException("validUntil must be in the future");
         }
