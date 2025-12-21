@@ -8,6 +8,6 @@ import java.util.List;
 public interface KeyExemptionService {
     KeyExemption createExemption(KeyExemptionRequestDto dto);
     KeyExemption updateExemption(Long id, KeyExemptionRequestDto dto);
-    KeyExemption getExemptionByKey(Long keyId);
+    KeyExemption getExemptionByKey(Long apiKeyId);
     List<KeyExemption> getAllExemptions();
 }

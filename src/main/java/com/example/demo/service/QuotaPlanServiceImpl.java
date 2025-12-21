@@ -4,7 +4,6 @@ import com.example.demo.dto.QuotaPlanRequestDto;
 import com.example.demo.entity.QuotaPlan;
 import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.repository.ApiKeyRepository;
 import com.example.demo.repository.QuotaPlanRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,11 +15,9 @@ import java.util.List;
 public class QuotaPlanServiceImpl implements QuotaPlanService {
 
     private final QuotaPlanRepository quotaPlanRepository;
-    private final ApiKeyRepository apiKeyRepository;
 
-    public QuotaPlanServiceImpl(QuotaPlanRepository quotaPlanRepository, ApiKeyRepository apiKeyRepository) {
+    public QuotaPlanServiceImpl(QuotaPlanRepository quotaPlanRepository) {
         this.quotaPlanRepository = quotaPlanRepository;
-        this.apiKeyRepository = apiKeyRepository;
     }
 
     @Override
@@ -31,12 +28,11 @@ public class QuotaPlanServiceImpl implements QuotaPlanService {
             throw new BadRequestException("Plan name already exists: " + name);
         }
 
-        QuotaPlan plan = QuotaPlan.builder()
-                .planName(name)
-                .dailyLimit(dto.getDailyLimit())
-                .description(dto.getDescription() == null ? null : dto.getDescription().trim())
-                .active(dto.getActive())
-                .build();
+        QuotaPlan plan = new QuotaPlan();
+        plan.setPlanName(name);
+        plan.setDailyLimit(dto.getDailyLimit());
+        plan.setDescription(dto.getDescription() == null ? null : dto.getDescription().trim());
+        plan.setActive(dto.getActive());
 
         return quotaPlanRepository.save(plan);
     }
@@ -57,10 +53,8 @@ public class QuotaPlanServiceImpl implements QuotaPlanService {
     @Override
     public QuotaPlan update(Long id, QuotaPlanRequestDto dto) {
         QuotaPlan existing = getById(id);
-
         String newName = dto.getPlanName().trim();
 
-        // uniqueness only if name changed
         if (!existing.getPlanName().equalsIgnoreCase(newName)
                 && quotaPlanRepository.existsByPlanNameIgnoreCase(newName)) {
             throw new BadRequestException("Plan name already exists: " + newName);
@@ -84,13 +78,6 @@ public class QuotaPlanServiceImpl implements QuotaPlanService {
     @Override
     public void delete(Long id) {
         QuotaPlan existing = getById(id);
-
-        long keysUsingThisPlan = apiKeyRepository.countByPlan_Id(id);
-        if (keysUsingThisPlan > 0) {
-            // safer than deleting
-            throw new BadRequestException("Cannot delete plan. ApiKeys are linked to this plan: " + keysUsingThisPlan);
-        }
-
         quotaPlanRepository.delete(existing);
     }
 }

@@ -27,21 +27,21 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
     }
 
     @Override
-    public KeyExemption create(KeyExemptionRequestDto dto) {
+    public KeyExemption createExemption(KeyExemptionRequestDto dto) {
         ApiKey apiKey = apiKeyRepository.findById(dto.getApiKeyId())
                 .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found with id: " + dto.getApiKeyId()));
 
-        // Enforce “one exemption per key”
-        keyExemptionRepository.findByApiKey_Id(apiKey.getId()).ifPresent(existing -> {
+        // Only one exemption per ApiKey
+        keyExemptionRepository.findByApiKey_Id(apiKey.getId()).ifPresent(ex -> {
             throw new BadRequestException("Exemption already exists for ApiKey id: " + apiKey.getId());
         });
 
-        validateDates(dto.getValidUntil());
+        validateValidUntil(dto.getValidUntil());
 
         KeyExemption ex = new KeyExemption();
         ex.setApiKey(apiKey);
-        ex.setNotes(trimOrNull(dto.getNotes()));
-        ex.setUnlimitedAccess(Boolean.TRUE.equals(dto.getUnlimitedAccess()));
+        ex.setNotes(trim(dto.getNotes()));
+        ex.setUnlimitedAccess(dto.getUnlimitedAccess());
         ex.setTemporaryExtensionLimit(dto.getTemporaryExtensionLimit());
         ex.setValidUntil(dto.getValidUntil());
 
@@ -49,14 +49,12 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
     }
 
     @Override
-    public KeyExemption update(Long id, KeyExemptionRequestDto dto) {
+    public KeyExemption updateExemption(Long id, KeyExemptionRequestDto dto) {
         KeyExemption existing = keyExemptionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("KeyExemption not found with id: " + id));
 
-        // If apiKeyId is changing, validate existence and uniqueness
-        if (dto.getApiKeyId() != null && (existing.getApiKey() == null ||
-                !dto.getApiKeyId().equals(existing.getApiKey().getId()))) {
-
+        // If ApiKey changes, ensure key exists & no other exemption uses it
+        if (dto.getApiKeyId() != null && !dto.getApiKeyId().equals(existing.getApiKey().getId())) {
             ApiKey newKey = apiKeyRepository.findById(dto.getApiKeyId())
                     .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found with id: " + dto.getApiKeyId()));
 
@@ -69,19 +67,13 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
             existing.setApiKey(newKey);
         }
 
-        if (dto.getValidUntil() != null) {
-            validateDates(dto.getValidUntil());
-            existing.setValidUntil(dto.getValidUntil());
-        }
+        if (dto.getNotes() != null) existing.setNotes(trim(dto.getNotes()));
+        if (dto.getUnlimitedAccess() != null) existing.setUnlimitedAccess(dto.getUnlimitedAccess());
+        if (dto.getTemporaryExtensionLimit() != null) existing.setTemporaryExtensionLimit(dto.getTemporaryExtensionLimit());
 
-        if (dto.getNotes() != null) {
-            existing.setNotes(trimOrNull(dto.getNotes()));
-        }
-        if (dto.getUnlimitedAccess() != null) {
-            existing.setUnlimitedAccess(dto.getUnlimitedAccess());
-        }
-        if (dto.getTemporaryExtensionLimit() != null) {
-            existing.setTemporaryExtensionLimit(dto.getTemporaryExtensionLimit());
+        if (dto.getValidUntil() != null) {
+            validateValidUntil(dto.getValidUntil());
+            existing.setValidUntil(dto.getValidUntil());
         }
 
         return keyExemptionRepository.save(existing);
@@ -89,31 +81,25 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
 
     @Override
     @Transactional(readOnly = true)
-    public KeyExemption getByKey(Long apiKeyId) {
+    public KeyExemption getExemptionByKey(Long apiKeyId) {
         return keyExemptionRepository.findByApiKey_Id(apiKeyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Exemption not found for ApiKey id: " + apiKeyId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<KeyExemption> getAll() {
+    public List<KeyExemption> getAllExemptions() {
         return keyExemptionRepository.findAll();
     }
 
-    /* ----------------- helpers ----------------- */
+    private static void validateValidUntil(Instant validUntil) {
+        if (validUntil == null) throw new BadRequestException("validUntil is required");
+        if (!validUntil.isAfter(Instant.now())) throw new BadRequestException("validUntil must be in the future");
+    }
 
-    private static String trimOrNull(String s) {
+    private static String trim(String s) {
         if (s == null) return null;
         String t = s.trim();
         return t.isEmpty() ? null : t;
-        }
-
-    private static void validateDates(Instant validUntil) {
-        if (validUntil == null) {
-            throw new BadRequestException("validUntil is required");
-        }
-        if (!validUntil.isAfter(Instant.now())) {
-            throw new BadRequestException("validUntil must be a future date/time");
-        }
     }
 }
