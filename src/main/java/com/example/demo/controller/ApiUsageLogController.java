@@ -1,9 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ApiUsageLogRequestDto;
 import com.example.demo.entity.ApiUsageLog;
 import com.example.demo.service.ApiUsageLogService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,23 +20,25 @@ public class ApiUsageLogController {
         this.apiUsageLogService = apiUsageLogService;
     }
 
+    // POST /api/usage-logs
+    // Body: { "apiKeyId": 1, "endpoint": "/payment/charge" }
     @PostMapping
-    public ApiUsageLog logUsage(@Valid @RequestBody ApiUsageLog log) {
-        return apiUsageLogService.logUsage(log);
+    public ApiUsageLog logUsage(@Valid @RequestBody ApiUsageLogRequestDto req) {
+        return apiUsageLogService.logUsage(req.getApiKeyId(), req.getEndpoint());
     }
 
     @GetMapping("/key/{keyId}")
-    public List<ApiUsageLog> getForKey(@PathVariable @Min(1) Long keyId) {
+    public List<ApiUsageLog> getForKey(@PathVariable Long keyId) {
         return apiUsageLogService.getUsageForApiKey(keyId);
     }
 
     @GetMapping("/key/{keyId}/today")
-    public List<ApiUsageLog> getToday(@PathVariable @Min(1) Long keyId) {
+    public List<ApiUsageLog> getToday(@PathVariable Long keyId) {
         return apiUsageLogService.getUsageForToday(keyId);
     }
 
     @GetMapping("/key/{keyId}/count-today")
-    public long countToday(@PathVariable @Min(1) Long keyId) {
+    public long countToday(@PathVariable Long keyId) {
         return apiUsageLogService.countRequestsToday(keyId);
     }
 }
