@@ -1,51 +1,64 @@
 package com.example.demo.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-
 import java.time.Instant;
 
 @Entity
-@Table(name = "key_exemption")
+@Table(name="key_exemption")
 public class KeyExemption {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "apiKey is required")
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "api_key_id", nullable = false)
-    @JsonIgnore
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name="api_key_id", nullable=false, unique=true,
+        foreignKey = @ForeignKey(name="fk_exemption_api_key"))
     private ApiKey apiKey;
 
+    @Column(name="notes", length=255)
     private String notes;
 
-    @NotNull(message = "unlimitedAccess is required")
-    @Column(nullable = false)
+    @Column(name="unlimited_access", nullable=false)
     private Boolean unlimitedAccess = false;
 
-    @Min(value = 0, message = "temporaryExtensionLimit must be >= 0")
+    @Column(name="temporary_extension_limit")
     private Integer temporaryExtensionLimit;
 
-    @NotNull(message = "validUntil is required")
-    @Future(message = "validUntil must be in the future")
+    @Column(name="valid_until")
     private Instant validUntil;
 
+    @Column(name="created_at", nullable=false, updatable=false)
+    private Instant createdAt;
+
+    @Column(name="updated_at", nullable=false)
+    private Instant updatedAt;
+
+    @PrePersist
+    void prePersist() {
+        Instant now = Instant.now();
+        createdAt = now;
+        updatedAt = now;
+        if (unlimitedAccess == null) unlimitedAccess = false;
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        updatedAt = Instant.now();
+    }
+
+    // getters & setters
     public Long getId() { return id; }
     public ApiKey getApiKey() { return apiKey; }
-    public String getNotes() { return notes; }
-    public Boolean getUnlimitedAccess() { return unlimitedAccess; }
-    public Integer getTemporaryExtensionLimit() { return temporaryExtensionLimit; }
-    public Instant getValidUntil() { return validUntil; }
-
-    public void setId(Long id) { this.id = id; }
     public void setApiKey(ApiKey apiKey) { this.apiKey = apiKey; }
+    public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+    public Boolean getUnlimitedAccess() { return unlimitedAccess; }
     public void setUnlimitedAccess(Boolean unlimitedAccess) { this.unlimitedAccess = unlimitedAccess; }
+    public Integer getTemporaryExtensionLimit() { return temporaryExtensionLimit; }
     public void setTemporaryExtensionLimit(Integer temporaryExtensionLimit) { this.temporaryExtensionLimit = temporaryExtensionLimit; }
+    public Instant getValidUntil() { return validUntil; }
     public void setValidUntil(Instant validUntil) { this.validUntil = validUntil; }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
 }
