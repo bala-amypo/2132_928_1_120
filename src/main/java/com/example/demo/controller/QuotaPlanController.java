@@ -1,22 +1,59 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.QuotaPlanRequestDto;
 import com.example.demo.entity.QuotaPlan;
 import com.example.demo.service.QuotaPlanService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/quota-plans")
 public class QuotaPlanController {
 
-    private final QuotaPlanService service;
+    private final QuotaPlanService quotaPlanService;
 
-    public QuotaPlanController(QuotaPlanService service) {
-        this.service = service;
+    public QuotaPlanController(QuotaPlanService quotaPlanService) {
+        this.quotaPlanService = quotaPlanService;
     }
 
+    // CREATE
     @PostMapping
-    public QuotaPlan create(@RequestBody @Valid QuotaPlan plan) {
-        return service.create(plan);
+    @ResponseStatus(HttpStatus.CREATED)
+    public QuotaPlan create(@Valid @RequestBody QuotaPlanRequestDto dto) {
+        return quotaPlanService.create(dto);
+    }
+
+    // READ ONE
+    @GetMapping("/{id}")
+    public QuotaPlan getById(@PathVariable Long id) {
+        return quotaPlanService.getById(id);
+    }
+
+    // READ ALL
+    @GetMapping
+    public List<QuotaPlan> getAll() {
+        return quotaPlanService.getAll();
+    }
+
+    // UPDATE
+    @PutMapping("/{id}")
+    public QuotaPlan update(@PathVariable Long id, @Valid @RequestBody QuotaPlanRequestDto dto) {
+        return quotaPlanService.update(id, dto);
+    }
+
+    // DEACTIVATE (soft disable)
+    @PutMapping("/{id}/deactivate")
+    public QuotaPlan deactivate(@PathVariable Long id) {
+        return quotaPlanService.deactivate(id);
+    }
+
+    // DELETE (hard delete - only if no ApiKeys linked)
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        quotaPlanService.delete(id);
     }
 }
