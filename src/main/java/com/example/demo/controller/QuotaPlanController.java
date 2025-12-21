@@ -3,45 +3,20 @@ package com.example.demo.controller;
 import com.example.demo.entity.QuotaPlan;
 import com.example.demo.service.QuotaPlanService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@Validated
 @RestController
 @RequestMapping("/api/quota-plans")
 public class QuotaPlanController {
 
-    private final QuotaPlanService quotaPlanService;
+    private final QuotaPlanService service;
 
-    public QuotaPlanController(QuotaPlanService quotaPlanService) {
-        this.quotaPlanService = quotaPlanService;
+    public QuotaPlanController(QuotaPlanService service) {
+        this.service = service;
     }
 
     @PostMapping
-    public QuotaPlan create(@Valid @RequestBody QuotaPlan plan) {
-        return quotaPlanService.createQuotaPlan(plan);
-    }
-
-    @PutMapping("/{id}")
-    public QuotaPlan update(@PathVariable @Min(1) Long id, @Valid @RequestBody QuotaPlan plan) {
-        return quotaPlanService.updateQuotaPlan(id, plan);
-    }
-
-    @GetMapping("/{id}")
-    public QuotaPlan getById(@PathVariable @Min(1) Long id) {
-        return quotaPlanService.getQuotaPlanById(id);
-    }
-
-    @GetMapping
-    public List<QuotaPlan> getAll() {
-        return quotaPlanService.getAllPlans();
-    }
-
-    @PutMapping("/{id}/deactivate")
-    public QuotaPlan deactivate(@PathVariable @Min(1) Long id) {
-        return quotaPlanService.deactivateQuotaPlan(id);
+    public QuotaPlan create(@RequestBody @Valid QuotaPlan plan) {
+        return service.create(plan);
     }
 }
