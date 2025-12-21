@@ -11,9 +11,12 @@ public final class ValidationRules {
 
     public static void requireActivePlan(QuotaPlan plan) {
         if (plan == null) throw new BadRequestException("Quota plan is required");
-        if (plan.getActive() == null || !plan.getActive()) {
+
+        // ✅ boolean -> getter is isActive()
+        if (!plan.isActive()) {
             throw new BadRequestException("Quota plan is inactive");
         }
+
         if (plan.getDailyLimit() == null || plan.getDailyLimit() <= 0) {
             throw new BadRequestException("Quota plan dailyLimit must be > 0");
         }

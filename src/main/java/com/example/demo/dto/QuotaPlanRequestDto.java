@@ -4,27 +4,28 @@ import jakarta.validation.constraints.*;
 
 public class QuotaPlanRequestDto {
 
-    @NotBlank(message = "planName is required")
-    @Size(min = 2, max = 100, message = "planName must be 2 to 100 chars")
+    @NotBlank
+    @Size(min = 2, max = 80)
     private String planName;
 
-    @NotNull(message = "dailyLimit is required")
-    @Min(value = 1, message = "dailyLimit must be >= 1")
-    private Long dailyLimit;
+    @NotNull
+    @Min(1)
+    private Integer dailyLimit;   // ✅ Integer (not Long)
 
-    @Size(max = 255, message = "description max 255 chars")
+    @Size(max = 255)
     private String description;
 
-    @NotNull(message = "active is required")
-    private Boolean active;
+    private Boolean active = true;
 
     public String getPlanName() { return planName; }
-    public Long getDailyLimit() { return dailyLimit; }
-    public String getDescription() { return description; }
-    public Boolean getActive() { return active; }
-
     public void setPlanName(String planName) { this.planName = planName; }
-    public void setDailyLimit(Long dailyLimit) { this.dailyLimit = dailyLimit; }
+
+    public Integer getDailyLimit() { return dailyLimit; }
+    public void setDailyLimit(Integer dailyLimit) { this.dailyLimit = dailyLimit; }
+
+    public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
 }
