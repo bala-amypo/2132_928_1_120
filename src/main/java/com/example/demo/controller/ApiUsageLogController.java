@@ -20,8 +20,7 @@ public class ApiUsageLogController {
         this.apiUsageLogService = apiUsageLogService;
     }
 
-    // POST /api/usage-logs
-    // Body: { "apiKeyId": 1, "endpoint": "/payment/charge" }
+    
     @PostMapping
     public ApiUsageLog logUsage(@Valid @RequestBody ApiUsageLogRequestDto req) {
         return apiUsageLogService.logUsage(req.getApiKeyId(), req.getEndpoint());

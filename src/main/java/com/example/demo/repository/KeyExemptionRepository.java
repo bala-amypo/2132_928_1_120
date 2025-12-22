@@ -1,4 +1,3 @@
-// src/main/java/com/example/demo/repository/KeyExemptionRepository.java
 package com.example.demo.repository;
 
 import com.example.demo.entity.KeyExemption;

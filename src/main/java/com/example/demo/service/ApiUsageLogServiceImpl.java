@@ -32,9 +32,9 @@ public class ApiUsageLogServiceImpl implements ApiUsageLogService {
                         new ResourceNotFoundException("ApiKey not found with id: " + apiKeyId));
 
         ApiUsageLog log = new ApiUsageLog();
-        log.setApiKey(apiKey);           // ✅ REQUIRED
+        log.setApiKey(apiKey);           
         log.setEndpoint(endpoint);
-        log.setTimestamp(Instant.now()); // ✅ Avoid future timestamp issue
+        log.setTimestamp(Instant.now()); 
 
         return apiUsageLogRepository.save(log);
     }

@@ -1,4 +1,3 @@
-// src/main/java/com/example/demo/service/KeyExemptionServiceImpl.java
 package com.example.demo.service;
 
 import com.example.demo.dto.KeyExemptionRequestDto;
@@ -90,7 +89,6 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
                 .orElseThrow(() -> new NotFoundException("KeyExemption not found with id: " + id));
     }
 
-    // ---------------- helpers ----------------
 
     private KeyExemptionResponseDto toDto(KeyExemption ex) {
         return new KeyExemptionResponseDto(
@@ -112,10 +110,9 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
         if (ex.getValidUntil() != null && !ex.getValidUntil().isAfter(Instant.now())) {
             throw new BadRequestException("validUntil must be in the future");
         }
-        // optional: if unlimited, ignore extensionLimit
+     
         if (Boolean.TRUE.equals(ex.getUnlimitedAccess())) {
-            // you can choose to null it out
-            // ex.setTemporaryExtensionLimit(null);
+           
         }
     }
 
