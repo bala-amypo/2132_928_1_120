@@ -9,6 +9,5 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, Long> {
 
     Optional<ApiKey> findByKeyValue(String keyValue);
 
-    // ✅ ADD THIS
     boolean existsByKeyValue(String keyValue);
 }

@@ -34,14 +34,13 @@ public class ApiKey {
     @Column(name="updated_at", nullable = false)
     private Instant updatedAt;
 
-    // IMPORTANT: prevent recursion / lazy proxy serialize
     @JsonIgnore
     @OneToMany(mappedBy = "apiKey", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<KeyExemption> exemptions = new ArrayList<>();
 
     public ApiKey() {}
 
-    // getters/setters
+   
     public Long getId() { return id; }
     public String getKeyValue() { return keyValue; }
     public void setKeyValue(String keyValue) { this.keyValue = keyValue; }
