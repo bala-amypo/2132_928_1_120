@@ -1,4 +1,3 @@
-// src/main/java/com/example/demo/entity/KeyExemption.java
 package com.example.demo.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

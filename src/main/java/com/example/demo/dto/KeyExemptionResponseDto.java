@@ -1,4 +1,3 @@
-// src/main/java/com/example/demo/dto/KeyExemptionResponseDto.java
 package com.example.demo.dto;
 
 import java.time.Instant;

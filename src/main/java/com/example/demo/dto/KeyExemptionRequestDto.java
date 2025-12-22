@@ -1,4 +1,3 @@
-// src/main/java/com/example/demo/dto/KeyExemptionRequestDto.java
 package com.example.demo.dto;
 
 import jakarta.validation.constraints.NotNull;
@@ -16,10 +15,9 @@ public class KeyExemptionRequestDto {
     @NotNull(message = "unlimitedAccess is required")
     private Boolean unlimitedAccess;
 
-    // can be null; if present must be >= 0 (validated in service)
     private Integer temporaryExtensionLimit;
 
-    // can be null; if present must be in future (validated in service)
+   
     private Instant validUntil;
 
     public KeyExemptionRequestDto() {}

@@ -66,7 +66,6 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         ApiKey existing = apiKeyRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("ApiKey not found with id: " + id));
 
-        // keyValue uniqueness check (if changed)
         String newKeyValue = dto.getKeyValue().trim();
         if (!existing.getKeyValue().equals(newKeyValue)) {
             apiKeyRepository.findByKeyValue(newKeyValue).ifPresent(k -> {
