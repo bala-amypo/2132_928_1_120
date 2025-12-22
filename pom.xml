@@ -17,7 +17,7 @@
     <artifactId>demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>demo</name>
-    <description>Demo project for Spring Boot CRUD</description>
+    <description>Spring Boot CRUD with MySQL</description>
 
     <properties>
         <java.version>17</java.version>
@@ -50,23 +50,12 @@
             <version>2.3.0</version>
         </dependency>
 
-        <!-- Database Driver (Choose ONE) -->
-
-        <!-- MariaDB -->
-        <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- MySQL (comment out if using MariaDB) -->
-        <!--
+        <!-- MySQL Driver (FIXED) -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
-        -->
 
         <!-- Testing -->
         <dependency>
