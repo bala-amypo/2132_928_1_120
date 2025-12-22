@@ -19,38 +19,33 @@ public class QuotaPlanController {
         this.quotaPlanService = quotaPlanService;
     }
 
-    // CREATE
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public QuotaPlan create(@Valid @RequestBody QuotaPlanRequestDto dto) {
         return quotaPlanService.create(dto);
     }
 
-    // READ ONE
+  
     @GetMapping("/{id}")
     public QuotaPlan getById(@PathVariable Long id) {
         return quotaPlanService.getById(id);
     }
 
-    // READ ALL
     @GetMapping
     public List<QuotaPlan> getAll() {
         return quotaPlanService.getAll();
     }
 
-    // UPDATE
     @PutMapping("/{id}")
     public QuotaPlan update(@PathVariable Long id, @Valid @RequestBody QuotaPlanRequestDto dto) {
         return quotaPlanService.update(id, dto);
     }
 
-    // DEACTIVATE (soft disable)
     @PutMapping("/{id}/deactivate")
     public QuotaPlan deactivate(@PathVariable Long id) {
         return quotaPlanService.deactivate(id);
     }
 
-    // DELETE (hard delete - only if no ApiKeys linked)
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
