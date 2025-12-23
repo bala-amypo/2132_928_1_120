@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
 public class ApiKeyServiceImpl implements ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepository;
@@ -26,16 +25,19 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         this.quotaPlanRepository = quotaPlanRepository;
     }
 
+    // 🔴 TRANSACTION TEST METHOD
     @Override
+    @Transactional
     public ApiKeyResponseDto create(ApiKeyRequestDto dto) {
+
         if (apiKeyRepository.existsByKeyValue(dto.getKeyValue())) {
             throw new BadRequestException("keyValue already exists: " + dto.getKeyValue());
         }
 
         QuotaPlan plan = quotaPlanRepository.findById(dto.getPlanId())
-                .orElseThrow(() -> new NotFoundException("QuotaPlan not found with id: " + dto.getPlanId()));
-
-        ValidationRules.requireActivePlan(plan);
+                .orElseThrow(() ->
+                        new NotFoundException("QuotaPlan not found with id: " + dto.getPlanId())
+                );
 
         ApiKey key = new ApiKey();
         key.setKeyValue(dto.getKeyValue().trim());
@@ -43,28 +45,45 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         key.setPlan(plan);
         key.setActive(dto.getActive());
 
-        ApiKey saved = apiKeyRepository.save(key);
-        return toDto(saved);
+        // 🔴 SAVE FIRST
+        apiKeyRepository.save(key);
+
+        // 🔴 FORCE EXCEPTION (LIKE STUDENT EXAMPLE)
+        if ("TEST".equalsIgnoreCase(dto.getOwnerId())) {
+            throw new BadRequestException("Testing Transaction Rollback");
+        }
+
+        return toDto(key);
     }
 
+    // ✅ READ-ONLY TRANSACTION
     @Override
     @Transactional(readOnly = true)
     public ApiKeyResponseDto getById(Long id) {
         ApiKey key = apiKeyRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("ApiKey not found with id: " + id));
+                .orElseThrow(() ->
+                        new NotFoundException("ApiKey not found with id: " + id)
+                );
         return toDto(key);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ApiKeyResponseDto> getAll() {
-        return apiKeyRepository.findAll().stream().map(this::toDto).toList();
+        return apiKeyRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Override
+    @Transactional
     public ApiKeyResponseDto update(Long id, ApiKeyRequestDto dto) {
+
         ApiKey existing = apiKeyRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("ApiKey not found with id: " + id));
+                .orElseThrow(() ->
+                        new NotFoundException("ApiKey not found with id: " + id)
+                );
 
         String newKeyValue = dto.getKeyValue().trim();
         if (!existing.getKeyValue().equals(newKeyValue)) {
@@ -75,9 +94,9 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         }
 
         QuotaPlan plan = quotaPlanRepository.findById(dto.getPlanId())
-                .orElseThrow(() -> new NotFoundException("QuotaPlan not found with id: " + dto.getPlanId()));
-
-        ValidationRules.requireActivePlan(plan);
+                .orElseThrow(() ->
+                        new NotFoundException("QuotaPlan not found with id: " + dto.getPlanId())
+                );
 
         existing.setOwnerId(dto.getOwnerId());
         existing.setPlan(plan);
@@ -88,23 +107,29 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
+    @Transactional
     public ApiKeyResponseDto deactivate(Long id) {
-        ApiKey existing = apiKeyRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("ApiKey not found with id: " + id));
 
-        existing.setActive(false);
-        ApiKey saved = apiKeyRepository.save(existing);
+        ApiKey key = apiKeyRepository.findById(id)
+                .orElseThrow(() ->
+                        new NotFoundException("ApiKey not found with id: " + id)
+                );
+
+        key.setActive(false);
+        ApiKey saved = apiKeyRepository.save(key);
         return toDto(saved);
     }
 
+    // 🔁 ENTITY → DTO
     private ApiKeyResponseDto toDto(ApiKey key) {
-        QuotaPlan p = key.getPlan();
+        QuotaPlan plan = key.getPlan();
+
         return new ApiKeyResponseDto(
                 key.getId(),
                 key.getKeyValue(),
                 key.getOwnerId(),
-                p != null ? p.getId() : null,
-                p != null ? p.getPlanName() : null,
+                plan != null ? plan.getId() : null,
+                plan != null ? plan.getPlanName() : null,
                 key.getActive(),
                 key.getCreatedAt(),
                 key.getUpdatedAt()
