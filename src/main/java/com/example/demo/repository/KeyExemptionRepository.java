@@ -10,16 +10,14 @@ import java.util.Optional;
 
 public interface KeyExemptionRepository extends JpaRepository<KeyExemption, Long> {
 
-    // 🔹 HQL: exemptions by API key
     @Query("select k from KeyExemption k where k.apiKey.id = :apiKeyId")
-    List<KeyExemption> findByApiKeyId(@Param("apiKeyId") Long apiKeyId);
+    List<KeyExemption> findByApiKey_Id(@Param("apiKeyId") Long apiKeyId);
 
-    // 🔹 HQL: latest exemption
     @Query("""
         select k
         from KeyExemption k
         where k.apiKey.id = :apiKeyId
         order by k.id desc
     """)
-    Optional<KeyExemption> findLatestByApiKeyId(@Param("apiKeyId") Long apiKeyId);
+    Optional<KeyExemption> findFirstByApiKey_IdOrderByIdDesc(@Param("apiKeyId") Long apiKeyId);
 }

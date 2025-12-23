@@ -10,16 +10,14 @@ import java.util.List;
 
 public interface ApiUsageLogRepository extends JpaRepository<ApiUsageLog, Long> {
 
-    // 🔹 HQL: all logs for a key
     @Query("""
         select l
         from ApiUsageLog l
         where l.apiKey.id = :keyId
         order by l.timestamp desc
     """)
-    List<ApiUsageLog> findByApiKeyId(@Param("keyId") Long keyId);
+    List<ApiUsageLog> findByApiKey_IdOrderByTimestampDesc(@Param("keyId") Long keyId);
 
-    // 🔹 HQL: logs between time
     @Query("""
         select l
         from ApiUsageLog l
@@ -27,20 +25,19 @@ public interface ApiUsageLogRepository extends JpaRepository<ApiUsageLog, Long> 
           and l.timestamp between :start and :end
         order by l.timestamp desc
     """)
-    List<ApiUsageLog> findByApiKeyIdBetween(
+    List<ApiUsageLog> findByApiKey_IdAndTimestampBetweenOrderByTimestampDesc(
             @Param("keyId") Long keyId,
             @Param("start") Instant start,
             @Param("end") Instant end
     );
 
-    // 🔹 HQL: count today usage
     @Query("""
         select count(l)
         from ApiUsageLog l
         where l.apiKey.id = :keyId
           and l.timestamp between :start and :end
     """)
-    long countToday(
+    long countByApiKey_IdAndTimestampBetween(
             @Param("keyId") Long keyId,
             @Param("start") Instant start,
             @Param("end") Instant end
