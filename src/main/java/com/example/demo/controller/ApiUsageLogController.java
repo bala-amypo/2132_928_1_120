@@ -20,7 +20,6 @@ public class ApiUsageLogController {
         this.apiUsageLogService = apiUsageLogService;
     }
 
-    
     @PostMapping
     public ApiUsageLog logUsage(@Valid @RequestBody ApiUsageLogRequestDto req) {
         return apiUsageLogService.logUsage(req.getApiKeyId(), req.getEndpoint());
