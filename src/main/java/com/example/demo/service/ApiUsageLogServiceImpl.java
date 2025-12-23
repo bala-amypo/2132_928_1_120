@@ -6,6 +6,7 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.ApiKeyRepository;
 import com.example.demo.repository.ApiUsageLogRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -25,6 +26,7 @@ public class ApiUsageLogServiceImpl implements ApiUsageLogService {
     }
 
     @Override
+    @Transactional
     public ApiUsageLog logUsage(Long apiKeyId, String endpoint) {
 
         ApiKey apiKey = apiKeyRepository.findById(apiKeyId)
@@ -32,11 +34,18 @@ public class ApiUsageLogServiceImpl implements ApiUsageLogService {
                         new ResourceNotFoundException("ApiKey not found with id: " + apiKeyId));
 
         ApiUsageLog log = new ApiUsageLog();
-        log.setApiKey(apiKey);           
+        log.setApiKey(apiKey);
         log.setEndpoint(endpoint);
-        log.setTimestamp(Instant.now()); 
+        log.setTimestamp(Instant.now());
 
-        return apiUsageLogRepository.save(log);
+        ApiUsageLog saved = apiUsageLogRepository.save(log);
+
+        // Like your AIML example condition
+        if (saved.getEndpoint() != null && saved.getEndpoint().equals("/testing")) {
+            throw new ResourceNotFoundException("Testing");
+        }
+
+        return saved;
     }
 
     @Override
