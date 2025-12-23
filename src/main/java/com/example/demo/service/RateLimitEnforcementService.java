@@ -14,5 +14,7 @@ public interface RateLimitEnforcementService {
 
     List<RateLimitEnforcement> getByApiKey(Long apiKeyId);
 
-    List<RateLimitEnforcement> getByApiKeyBetween(Long apiKeyId, Instant from, Instant to);
+    List<RateLimitEnforcement> getByApiKeyBetween(
+            Long apiKeyId, Instant from, Instant to
+    );
 }

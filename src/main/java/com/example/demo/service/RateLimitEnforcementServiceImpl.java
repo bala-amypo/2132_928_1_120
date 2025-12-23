@@ -13,13 +13,15 @@ import java.time.Instant;
 import java.util.List;
 
 @Service
-public class RateLimitEnforcementServiceImpl implements RateLimitEnforcementService {
+public class RateLimitEnforcementServiceImpl
+        implements RateLimitEnforcementService {
 
     private final RateLimitEnforcementRepository enforcementRepo;
     private final ApiKeyRepository apiKeyRepo;
 
-    public RateLimitEnforcementServiceImpl(RateLimitEnforcementRepository enforcementRepo,
-                                          ApiKeyRepository apiKeyRepo) {
+    public RateLimitEnforcementServiceImpl(
+            RateLimitEnforcementRepository enforcementRepo,
+            ApiKeyRepository apiKeyRepo) {
         this.enforcementRepo = enforcementRepo;
         this.apiKeyRepo = apiKeyRepo;
     }
@@ -30,23 +32,28 @@ public class RateLimitEnforcementServiceImpl implements RateLimitEnforcementServ
 
         ApiKey apiKey = apiKeyRepo.findById(dto.getApiKeyId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("ApiKey not found with id: " + dto.getApiKeyId()));
+                        new ResourceNotFoundException(
+                                "ApiKey not found with id: " + dto.getApiKeyId()
+                        )
+                );
 
         RateLimitEnforcement e = new RateLimitEnforcement();
         e.setApiKey(apiKey);
-        e.setBlockedAt(dto.getBlockedAt() == null ? Instant.now() : dto.getBlockedAt());
+        e.setBlockedAt(
+                dto.getBlockedAt() == null ? Instant.now() : dto.getBlockedAt()
+        );
         e.setLimitExceededBy(dto.getLimitExceededBy());
         e.setMessage(dto.getMessage());
 
-        // ✅ SAVE FIRST (same as studentRepository.save(student))
+        // ✅ SAVE FIRST
         RateLimitEnforcement saved = enforcementRepo.save(e);
 
-        // ✅ CONDITION AFTER SAVE
-        if (saved.getLimitExceededBy() != null && saved.getLimitExceededBy() > 100) {
+        // ✅ CONDITION AFTER SAVE (rollback demo)
+        if (saved.getLimitExceededBy() != null
+                && saved.getLimitExceededBy() > 100) {
             throw new ResourceNotFoundException("Testing");
         }
 
-        // ✅ RETURN SAVED
         return saved;
     }
 
@@ -55,19 +62,25 @@ public class RateLimitEnforcementServiceImpl implements RateLimitEnforcementServ
     public RateLimitEnforcement getById(Long id) {
         return enforcementRepo.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("RateLimitEnforcement not found with id: " + id));
+                        new ResourceNotFoundException(
+                                "RateLimitEnforcement not found with id: " + id
+                        )
+                );
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<RateLimitEnforcement> getByApiKey(Long apiKeyId) {
-        return enforcementRepo.findByApiKey_IdOrderByBlockedAtDesc(apiKeyId);
+        return enforcementRepo.findByApiKeyHql(apiKeyId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<RateLimitEnforcement> getByApiKeyBetween(Long apiKeyId, Instant from, Instant to) {
-        return enforcementRepo
-                .findByApiKey_IdAndBlockedAtBetweenOrderByBlockedAtDesc(apiKeyId, from, to);
+    public List<RateLimitEnforcement> getByApiKeyBetween(
+            Long apiKeyId, Instant from, Instant to) {
+
+        return enforcementRepo.findByApiKeyBetweenHql(
+                apiKeyId, from, to
+        );
     }
 }
