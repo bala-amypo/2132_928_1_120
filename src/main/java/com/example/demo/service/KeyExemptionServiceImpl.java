@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.util.List;
 
 @Service
-@Transactional
 public class KeyExemptionServiceImpl implements KeyExemptionService {
 
     private final KeyExemptionRepository keyExemptionRepository;
@@ -28,7 +27,9 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
     }
 
     @Override
+    @Transactional
     public KeyExemptionResponseDto create(KeyExemptionRequestDto dto) {
+
         ApiKey apiKey = apiKeyRepository.findById(dto.getApiKeyId())
                 .orElseThrow(() -> new NotFoundException("ApiKey not found with id: " + dto.getApiKeyId()));
 
@@ -45,12 +46,22 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
         ex.setCreatedAt(now);
         ex.setUpdatedAt(now);
 
+        // ✅ Save first (same style as your Student example)
         KeyExemption saved = keyExemptionRepository.save(ex);
+
+        // ✅ Then condition + throw (same style as AIML example)
+        if (saved.getNotes() != null && saved.getNotes().equals("AIML")) {
+            throw new NotFoundException("Testing");
+        }
+
+        // ✅ Return saved (like return student)
         return toDto(saved);
     }
 
     @Override
+    @Transactional
     public KeyExemptionResponseDto update(Long id, KeyExemptionRequestDto dto) {
+
         KeyExemption existing = keyExemptionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("KeyExemption not found with id: " + id));
 
@@ -66,7 +77,17 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
         validateExemption(existing);
 
         existing.setUpdatedAt(Instant.now());
-        return toDto(keyExemptionRepository.save(existing));
+
+        // ✅ Save first
+        KeyExemption saved = keyExemptionRepository.save(existing);
+
+        // ✅ Then condition + throw
+        if (saved.getNotes() != null && saved.getNotes().equals("AIML")) {
+            throw new NotFoundException("Testing");
+        }
+
+        // ✅ Return saved
+        return toDto(saved);
     }
 
     @Override
@@ -89,7 +110,6 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
                 .orElseThrow(() -> new NotFoundException("KeyExemption not found with id: " + id));
     }
 
-
     private KeyExemptionResponseDto toDto(KeyExemption ex) {
         return new KeyExemptionResponseDto(
                 ex.getId(),
@@ -110,9 +130,9 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
         if (ex.getValidUntil() != null && !ex.getValidUntil().isAfter(Instant.now())) {
             throw new BadRequestException("validUntil must be in the future");
         }
-     
+
         if (Boolean.TRUE.equals(ex.getUnlimitedAccess())) {
-           
+            // keep logic if needed
         }
     }
 
