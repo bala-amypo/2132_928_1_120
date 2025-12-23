@@ -1,4 +1,3 @@
-// src/main/java/com/example/demo/controller/KeyExemptionController.java
 package com.example.demo.controller;
 
 import com.example.demo.dto.KeyExemptionRequestDto;
@@ -27,7 +26,8 @@ public class KeyExemptionController {
     }
 
     @PutMapping("/{id}")
-    public KeyExemptionResponseDto update(@PathVariable Long id, @Valid @RequestBody KeyExemptionRequestDto dto) {
+    public KeyExemptionResponseDto update(@PathVariable Long id,
+                                          @Valid @RequestBody KeyExemptionRequestDto dto) {
         return keyExemptionService.update(id, dto);
     }
 
@@ -44,5 +44,10 @@ public class KeyExemptionController {
     @GetMapping("/by-api-key/{apiKeyId}")
     public List<KeyExemptionResponseDto> getByApiKey(@PathVariable Long apiKeyId) {
         return keyExemptionService.getByApiKeyId(apiKeyId);
+    }
+
+    @GetMapping("/latest/{apiKeyId}")
+    public KeyExemptionResponseDto getLatest(@PathVariable Long apiKeyId) {
+        return keyExemptionService.getLatestByApiKeyId(apiKeyId);
     }
 }

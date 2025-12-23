@@ -6,9 +6,16 @@ import com.example.demo.dto.KeyExemptionResponseDto;
 import java.util.List;
 
 public interface KeyExemptionService {
+
     KeyExemptionResponseDto create(KeyExemptionRequestDto dto);
+
     KeyExemptionResponseDto update(Long id, KeyExemptionRequestDto dto);
+
     List<KeyExemptionResponseDto> getAllExemptions();
+
     List<KeyExemptionResponseDto> getByApiKeyId(Long apiKeyId);
+
     KeyExemptionResponseDto getById(Long id);
+
+    KeyExemptionResponseDto getLatestByApiKeyId(Long apiKeyId);
 }

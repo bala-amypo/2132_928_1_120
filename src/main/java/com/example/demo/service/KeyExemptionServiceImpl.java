@@ -31,30 +31,29 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
     public KeyExemptionResponseDto create(KeyExemptionRequestDto dto) {
 
         ApiKey apiKey = apiKeyRepository.findById(dto.getApiKeyId())
-                .orElseThrow(() -> new NotFoundException("ApiKey not found with id: " + dto.getApiKeyId()));
+                .orElseThrow(() ->
+                        new NotFoundException("ApiKey not found with id: " + dto.getApiKeyId()));
 
         KeyExemption ex = new KeyExemption();
         ex.setApiKey(apiKey);
-        ex.setNotes(safeTrim(dto.getNotes()));
+        ex.setNotes(trim(dto.getNotes()));
         ex.setUnlimitedAccess(Boolean.TRUE.equals(dto.getUnlimitedAccess()));
         ex.setTemporaryExtensionLimit(dto.getTemporaryExtensionLimit());
         ex.setValidUntil(dto.getValidUntil());
 
-        validateExemption(ex);
+        validate(ex);
 
         Instant now = Instant.now();
         ex.setCreatedAt(now);
         ex.setUpdatedAt(now);
 
-        // ✅ Save first (same style as your Student example)
         KeyExemption saved = keyExemptionRepository.save(ex);
 
-        // ✅ Then condition + throw (same style as AIML example)
-        if (saved.getNotes() != null && saved.getNotes().equals("AIML")) {
-            throw new NotFoundException("Testing");
+        // 🔴 Rollback demo (like Student/AIML example)
+        if ("AIML".equalsIgnoreCase(saved.getNotes())) {
+            throw new NotFoundException("Testing Transaction Rollback");
         }
 
-        // ✅ Return saved (like return student)
         return toDto(saved);
     }
 
@@ -63,43 +62,51 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
     public KeyExemptionResponseDto update(Long id, KeyExemptionRequestDto dto) {
 
         KeyExemption existing = keyExemptionRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("KeyExemption not found with id: " + id));
+                .orElseThrow(() ->
+                        new NotFoundException("KeyExemption not found with id: " + id));
 
         ApiKey apiKey = apiKeyRepository.findById(dto.getApiKeyId())
-                .orElseThrow(() -> new NotFoundException("ApiKey not found with id: " + dto.getApiKeyId()));
+                .orElseThrow(() ->
+                        new NotFoundException("ApiKey not found with id: " + dto.getApiKeyId()));
 
         existing.setApiKey(apiKey);
-        existing.setNotes(safeTrim(dto.getNotes()));
+        existing.setNotes(trim(dto.getNotes()));
         existing.setUnlimitedAccess(Boolean.TRUE.equals(dto.getUnlimitedAccess()));
         existing.setTemporaryExtensionLimit(dto.getTemporaryExtensionLimit());
         existing.setValidUntil(dto.getValidUntil());
 
-        validateExemption(existing);
+        validate(existing);
 
         existing.setUpdatedAt(Instant.now());
 
-        // ✅ Save first
-        KeyExemption saved = keyExemptionRepository.save(existing);
-
-        // ✅ Then condition + throw
-        if (saved.getNotes() != null && saved.getNotes().equals("AIML")) {
-            throw new NotFoundException("Testing");
-        }
-
-        // ✅ Return saved
-        return toDto(saved);
+        return toDto(keyExemptionRepository.save(existing));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<KeyExemptionResponseDto> getAllExemptions() {
-        return keyExemptionRepository.findAll().stream().map(this::toDto).toList();
+        return keyExemptionRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<KeyExemptionResponseDto> getByApiKeyId(Long apiKeyId) {
-        return keyExemptionRepository.findByApiKey_Id(apiKeyId).stream().map(this::toDto).toList();
+        return keyExemptionRepository.findByApiKeyHql(apiKeyId)
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public KeyExemptionResponseDto getLatestByApiKeyId(Long apiKeyId) {
+        KeyExemption ex = keyExemptionRepository.findLatestByApiKeyHql(apiKeyId)
+                .orElseThrow(() ->
+                        new NotFoundException("No exemption found for apiKeyId: " + apiKeyId));
+        return toDto(ex);
     }
 
     @Override
@@ -107,38 +114,14 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
     public KeyExemptionResponseDto getById(Long id) {
         return keyExemptionRepository.findById(id)
                 .map(this::toDto)
-                .orElseThrow(() -> new NotFoundException("KeyExemption not found with id: " + id));
+                .orElseThrow(() ->
+                        new NotFoundException("KeyExemption not found with id: " + id));
     }
 
-    private KeyExemptionResponseDto toDto(KeyExemption ex) {
-        return new KeyExemptionResponseDto(
-                ex.getId(),
-                ex.getApiKey() != null ? ex.getApiKey().getId() : null,
-                ex.getNotes(),
-                ex.getUnlimitedAccess(),
-                ex.getTemporaryExtensionLimit(),
-                ex.getValidUntil(),
-                ex.getCreatedAt(),
-                ex.getUpdatedAt()
-        );
-    }
+    /* ------------------ helpers ------------------ */
 
-    private void validateExemption(KeyExemption ex) {
+    private void validate(KeyExemption ex) {
         if (ex.getTemporaryExtensionLimit() != null && ex.getTemporaryExtensionLimit() < 0) {
             throw new BadRequestException("temporaryExtensionLimit must be >= 0");
         }
-        if (ex.getValidUntil() != null && !ex.getValidUntil().isAfter(Instant.now())) {
-            throw new BadRequestException("validUntil must be in the future");
-        }
-
-        if (Boolean.TRUE.equals(ex.getUnlimitedAccess())) {
-            // keep logic if needed
-        }
-    }
-
-    private String safeTrim(String s) {
-        if (s == null) return null;
-        String t = s.trim();
-        return t.isEmpty() ? null : t;
-    }
-}
+        if (ex.getValidUntil()
