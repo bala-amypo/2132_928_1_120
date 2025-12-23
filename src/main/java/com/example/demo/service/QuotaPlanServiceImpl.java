@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
 public class QuotaPlanServiceImpl implements QuotaPlanService {
 
     private final QuotaPlanRepository quotaPlanRepository;
@@ -21,6 +20,7 @@ public class QuotaPlanServiceImpl implements QuotaPlanService {
     }
 
     @Override
+    @Transactional
     public QuotaPlan create(QuotaPlanRequestDto dto) {
         String name = dto.getPlanName().trim();
 
@@ -34,7 +34,16 @@ public class QuotaPlanServiceImpl implements QuotaPlanService {
         plan.setDescription(dto.getDescription() == null ? null : dto.getDescription().trim());
         plan.setActive(dto.getActive());
 
-        return quotaPlanRepository.save(plan);
+        // ✅ save first (same style as Student example)
+        QuotaPlan saved = quotaPlanRepository.save(plan);
+
+        // ✅ then condition + throw
+        if (saved.getPlanName().equalsIgnoreCase("AIML")) {
+            throw new ResourceNotFoundException("Testing");
+        }
+
+        // ✅ return saved
+        return saved;
     }
 
     @Override
@@ -51,6 +60,7 @@ public class QuotaPlanServiceImpl implements QuotaPlanService {
     }
 
     @Override
+    @Transactional
     public QuotaPlan update(Long id, QuotaPlanRequestDto dto) {
         QuotaPlan existing = getById(id);
         String newName = dto.getPlanName().trim();
@@ -65,19 +75,47 @@ public class QuotaPlanServiceImpl implements QuotaPlanService {
         existing.setDescription(dto.getDescription() == null ? null : dto.getDescription().trim());
         existing.setActive(dto.getActive());
 
-        return quotaPlanRepository.save(existing);
+        // ✅ save first
+        QuotaPlan saved = quotaPlanRepository.save(existing);
+
+        // ✅ then condition + throw
+        if (saved.getPlanName().equalsIgnoreCase("AIML")) {
+            throw new ResourceNotFoundException("Testing");
+        }
+
+        // ✅ return saved
+        return saved;
     }
 
     @Override
+    @Transactional
     public QuotaPlan deactivate(Long id) {
         QuotaPlan existing = getById(id);
         existing.setActive(false);
-        return quotaPlanRepository.save(existing);
+
+        // ✅ save first
+        QuotaPlan saved = quotaPlanRepository.save(existing);
+
+        // ✅ then condition + throw
+        if (saved.getPlanName().equalsIgnoreCase("AIML")) {
+            throw new ResourceNotFoundException("Testing");
+        }
+
+        // ✅ return saved
+        return saved;
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         QuotaPlan existing = getById(id);
+
+        // ✅ delete first
         quotaPlanRepository.delete(existing);
+
+        // ✅ then condition + throw (example style)
+        if (existing.getPlanName().equalsIgnoreCase("AIML")) {
+            throw new ResourceNotFoundException("Testing");
+        }
     }
 }

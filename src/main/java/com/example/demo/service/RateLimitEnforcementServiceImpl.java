@@ -27,8 +27,10 @@ public class RateLimitEnforcementServiceImpl implements RateLimitEnforcementServ
     @Override
     @Transactional
     public RateLimitEnforcement create(RateLimitEnforcementRequestDto dto) {
+
         ApiKey apiKey = apiKeyRepo.findById(dto.getApiKeyId())
-                .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found with id: " + dto.getApiKeyId()));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("ApiKey not found with id: " + dto.getApiKeyId()));
 
         RateLimitEnforcement e = new RateLimitEnforcement();
         e.setApiKey(apiKey);
@@ -36,22 +38,36 @@ public class RateLimitEnforcementServiceImpl implements RateLimitEnforcementServ
         e.setLimitExceededBy(dto.getLimitExceededBy());
         e.setMessage(dto.getMessage());
 
-        return enforcementRepo.save(e);
+        // ✅ SAVE FIRST (same as studentRepository.save(student))
+        RateLimitEnforcement saved = enforcementRepo.save(e);
+
+        // ✅ CONDITION AFTER SAVE
+        if (saved.getLimitExceededBy() != null && saved.getLimitExceededBy() > 100) {
+            throw new ResourceNotFoundException("Testing");
+        }
+
+        // ✅ RETURN SAVED
+        return saved;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RateLimitEnforcement getById(Long id) {
         return enforcementRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("RateLimitEnforcement not found with id: " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("RateLimitEnforcement not found with id: " + id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RateLimitEnforcement> getByApiKey(Long apiKeyId) {
         return enforcementRepo.findByApiKey_IdOrderByBlockedAtDesc(apiKeyId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RateLimitEnforcement> getByApiKeyBetween(Long apiKeyId, Instant from, Instant to) {
-        return enforcementRepo.findByApiKey_IdAndBlockedAtBetweenOrderByBlockedAtDesc(apiKeyId, from, to);
+        return enforcementRepo
+                .findByApiKey_IdAndBlockedAtBetweenOrderByBlockedAtDesc(apiKeyId, from, to);
     }
 }
