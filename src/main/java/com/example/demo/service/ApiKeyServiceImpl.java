@@ -25,7 +25,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         this.quotaPlanRepository = quotaPlanRepository;
     }
 
-    // 🔴 TRANSACTION TEST METHOD
+    // 🔴 TRANSACTION ROLLBACK DEMO (LIKE STUDENT EXAMPLE)
     @Override
     @Transactional
     public ApiKeyResponseDto create(ApiKeyRequestDto dto) {
@@ -41,22 +41,22 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
         ApiKey key = new ApiKey();
         key.setKeyValue(dto.getKeyValue().trim());
-        key.setOwnerId(dto.getOwnerId());
+        key.setOwnerId(dto.getOwnerId());   // ✅ Long
         key.setPlan(plan);
         key.setActive(dto.getActive());
 
         // 🔴 SAVE FIRST
         apiKeyRepository.save(key);
 
-        // 🔴 FORCE EXCEPTION (LIKE STUDENT EXAMPLE)
-        if ("TEST".equalsIgnoreCase(dto.getOwnerId())) {
+        // 🔴 FORCE EXCEPTION → ROLLBACK
+        if (dto.getOwnerId() != null && dto.getOwnerId().equals(999L)) {
             throw new BadRequestException("Testing Transaction Rollback");
         }
 
         return toDto(key);
     }
 
-    // ✅ READ-ONLY TRANSACTION
+    // ✅ READ ONLY
     @Override
     @Transactional(readOnly = true)
     public ApiKeyResponseDto getById(Long id) {
@@ -122,6 +122,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     // 🔁 ENTITY → DTO
     private ApiKeyResponseDto toDto(ApiKey key) {
+
         QuotaPlan plan = key.getPlan();
 
         return new ApiKeyResponseDto(
