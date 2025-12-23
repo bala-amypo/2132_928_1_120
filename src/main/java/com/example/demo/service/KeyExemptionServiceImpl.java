@@ -124,4 +124,27 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
         if (ex.getTemporaryExtensionLimit() != null && ex.getTemporaryExtensionLimit() < 0) {
             throw new BadRequestException("temporaryExtensionLimit must be >= 0");
         }
-        if (ex.getValidUntil()
+        if (ex.getValidUntil() != null && !ex.getValidUntil().isAfter(Instant.now())) {
+            throw new BadRequestException("validUntil must be in the future");
+        }
+    }
+
+    private String trim(String s) {
+        if (s == null) return null;
+        s = s.trim();
+        return s.isEmpty() ? null : s;
+    }
+
+    private KeyExemptionResponseDto toDto(KeyExemption ex) {
+        return new KeyExemptionResponseDto(
+                ex.getId(),
+                ex.getApiKey() != null ? ex.getApiKey().getId() : null,
+                ex.getNotes(),
+                ex.getUnlimitedAccess(),
+                ex.getTemporaryExtensionLimit(),
+                ex.getValidUntil(),
+                ex.getCreatedAt(),
+                ex.getUpdatedAt()
+        );
+    }
+}
