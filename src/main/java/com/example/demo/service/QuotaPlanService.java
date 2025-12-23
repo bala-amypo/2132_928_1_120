@@ -11,7 +11,11 @@ public interface QuotaPlanService {
 
     QuotaPlan getById(Long id);
 
+    QuotaPlan getByName(String name);
+
     List<QuotaPlan> getAll();
+
+    List<QuotaPlan> getActivePlans();
 
     QuotaPlan update(Long id, QuotaPlanRequestDto dto);
 
