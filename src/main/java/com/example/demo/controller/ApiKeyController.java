@@ -30,9 +30,23 @@ public class ApiKeyController {
         return apiKeyService.getById(id);
     }
 
+    // ✅ NEW: HQL GET BY keyValue
+    // Swagger: GET /api/api-keys/by-key/{keyValue}
+    @GetMapping("/by-key/{keyValue}")
+    public ApiKeyResponseDto getByKeyValue(@PathVariable String keyValue) {
+        return apiKeyService.getByKeyValue(keyValue);
+    }
+
     @GetMapping
     public List<ApiKeyResponseDto> getAll() {
         return apiKeyService.getAll();
+    }
+
+    // ✅ NEW: HQL GET ONLY ACTIVE
+    // Swagger: GET /api/api-keys/active
+    @GetMapping("/active")
+    public List<ApiKeyResponseDto> getAllActive() {
+        return apiKeyService.getAllActive();
     }
 
     @PutMapping("/{id}")

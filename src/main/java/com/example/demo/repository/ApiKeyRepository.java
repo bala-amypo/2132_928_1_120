@@ -10,15 +10,15 @@ import java.util.Optional;
 
 public interface ApiKeyRepository extends JpaRepository<ApiKey, Long> {
 
-    // 🔹 HQL: find by keyValue
+    // ✅ HQL: find by keyValue
     @Query("select k from ApiKey k where k.keyValue = :keyValue")
-    Optional<ApiKey> findByKeyValue(@Param("keyValue") String keyValue);
+    Optional<ApiKey> findByKeyValueHql(@Param("keyValue") String keyValue);
 
-    // 🔹 HQL: check existence
+    // ✅ HQL: check existence
     @Query("select count(k) > 0 from ApiKey k where k.keyValue = :keyValue")
-    boolean existsByKeyValue(@Param("keyValue") String keyValue);
+    boolean existsByKeyValueHql(@Param("keyValue") String keyValue);
 
-    // 🔹 HQL: get active keys
+    // ✅ HQL: get only ACTIVE keys
     @Query("select k from ApiKey k where k.active = true")
-    List<ApiKey> findAllActiveKeys();
+    List<ApiKey> findAllActiveKeysHql();
 }
