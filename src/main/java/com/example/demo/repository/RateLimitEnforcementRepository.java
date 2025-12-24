@@ -8,31 +8,22 @@ import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.util.List;
 
-public interface RateLimitEnforcementRepository
-        extends JpaRepository<RateLimitEnforcement, Long> {
+public interface RateLimitEnforcementRepository extends JpaRepository<RateLimitEnforcement, Long> {
 
-    // 🔹 HQL: get by API key
     @Query("""
-        select r
-        from RateLimitEnforcement r
-        where r.apiKey.id = :apiKeyId
+        select r from RateLimitEnforcement r
+        where r.apiKey.id = :keyId
         order by r.blockedAt desc
     """)
-    List<RateLimitEnforcement> findByApiKeyHql(
-            @Param("apiKeyId") Long apiKeyId
-    );
+    List<RateLimitEnforcement> findByApiKeyId(@Param("keyId") Long keyId);
 
-    // 🔹 HQL: get by API key between dates
     @Query("""
-        select r
-        from RateLimitEnforcement r
-        where r.apiKey.id = :apiKeyId
-          and r.blockedAt between :from and :to
+        select r from RateLimitEnforcement r
+        where r.apiKey.id = :keyId
+        and r.blockedAt between :start and :end
         order by r.blockedAt desc
     """)
-    List<RateLimitEnforcement> findByApiKeyBetweenHql(
-            @Param("apiKeyId") Long apiKeyId,
-            @Param("from") Instant from,
-            @Param("to") Instant to
-    );
+    List<RateLimitEnforcement> findForKeyBetween(@Param("keyId") Long keyId,
+                                                 @Param("start") Instant start,
+                                                 @Param("end") Instant end);
 }
