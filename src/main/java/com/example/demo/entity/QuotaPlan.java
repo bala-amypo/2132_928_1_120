@@ -28,11 +28,20 @@ public class QuotaPlan {
     public void setPlanName(String planName) { this.planName = planName; }
 
     public Long getDailyLimit() { return dailyLimit; }
+
+    // ✅ main setter
     public void setDailyLimit(Long dailyLimit) { this.dailyLimit = dailyLimit; }
+
+    // ✅ overloads so tests passing int/long will compile
+    public void setDailyLimit(int dailyLimit) { this.dailyLimit = (long) dailyLimit; }
+    public void setDailyLimit(long dailyLimit) { this.dailyLimit = dailyLimit; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
+    // ✅ test expects isActive()
+    public boolean isActive() { return Boolean.TRUE.equals(active); }
 }
