@@ -10,29 +10,19 @@ import java.util.List;
 
 public interface ApiUsageLogRepository extends JpaRepository<ApiUsageLog, Long> {
 
-    @Query("""
-        select l from ApiUsageLog l
-        where l.apiKey.id = :keyId
-        order by l.timestamp desc
-    """)
-    List<ApiUsageLog> findByApiKey_IdOrderByTimestampDesc(@Param("keyId") Long keyId);
+    // HQL - list all logs by key
+    @Query("select l from ApiUsageLog l where l.apiKey.id = :keyId order by l.timestamp desc")
+    List<ApiUsageLog> findByApiKeyId(@Param("keyId") Long keyId);
 
-    @Query("""
-        select l from ApiUsageLog l
-        where l.apiKey.id = :keyId
-        and l.timestamp between :start and :end
-        order by l.timestamp desc
-    """)
+    // HQL - logs between start and end
+    @Query("select l from ApiUsageLog l where l.apiKey.id = :keyId and l.timestamp between :start and :end order by l.timestamp desc")
     List<ApiUsageLog> findForKeyBetween(@Param("keyId") Long keyId,
                                         @Param("start") Instant start,
                                         @Param("end") Instant end);
 
-    @Query("""
-        select count(l) from ApiUsageLog l
-        where l.apiKey.id = :keyId
-        and l.timestamp between :start and :end
-    """)
-    long countForKeyBetween(@Param("keyId") Long keyId,
-                            @Param("start") Instant start,
-                            @Param("end") Instant end);
+    // HQL - count logs between start and end
+    @Query("select count(l) from ApiUsageLog l where l.apiKey.id = :keyId and l.timestamp between :start and :end")
+    int countForKeyBetween(@Param("keyId") Long keyId,
+                           @Param("start") Instant start,
+                           @Param("end") Instant end);
 }

@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.ApiUsageLogDto;
 import com.example.demo.entity.ApiKey;
 import com.example.demo.entity.ApiUsageLog;
+import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.ApiKeyRepository;
 import com.example.demo.repository.ApiUsageLogRepository;
@@ -12,8 +14,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ApiUsageLogServiceImpl implements ApiUsageLogService {
 
     private final ApiUsageLogRepository apiUsageLogRepository;
@@ -26,35 +30,42 @@ public class ApiUsageLogServiceImpl implements ApiUsageLogService {
     }
 
     @Override
-    @Transactional
-    public ApiUsageLog logUsage(Long apiKeyId, String endpoint) {
+    public ApiUsageLogDto logUsage(ApiUsageLogDto dto) {
 
-        ApiKey apiKey = apiKeyRepository.findById(apiKeyId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("ApiKey not found with id: " + apiKeyId));
+        if (dto.getTimestamp() != null && dto.getTimestamp().isAfter(Instant.now())) {
+            throw new BadRequestException("timestamp cannot be in the future");
+        }
+
+        ApiKey apiKey = apiKeyRepository.findById(dto.getApiKeyId())
+                .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found"));
+
+        if (!Boolean.TRUE.equals(apiKey.getActive())) {
+            throw new BadRequestException("ApiKey is inactive");
+        }
 
         ApiUsageLog log = new ApiUsageLog();
         log.setApiKey(apiKey);
-        log.setEndpoint(endpoint);
-        log.setTimestamp(Instant.now());
+        log.setEndpoint(dto.getEndpoint());
+        log.setTimestamp(dto.getTimestamp() != null ? dto.getTimestamp() : Instant.now());
 
         ApiUsageLog saved = apiUsageLogRepository.save(log);
 
-        // 🔴 Transaction rollback demo
-        if ("/testing".equals(saved.getEndpoint())) {
-            throw new ResourceNotFoundException("Testing rollback");
-        }
-
-        return saved;
+        return toDto(saved);
     }
 
     @Override
-    public List<ApiUsageLog> getUsageForApiKey(Long keyId) {
-        return apiUsageLogRepository.findByApiKeyHql(keyId);
+    @Transactional(readOnly = true)
+    public List<ApiUsageLogDto> getUsageForApiKey(Long keyId) {
+
+        return apiUsageLogRepository.findByApiKeyId(keyId)
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<ApiUsageLog> getUsageForToday(Long keyId) {
+    @Transactional(readOnly = true)
+    public List<ApiUsageLogDto> getUsageForToday(Long keyId) {
 
         ZoneId zoneId = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zoneId);
@@ -62,11 +73,15 @@ public class ApiUsageLogServiceImpl implements ApiUsageLogService {
         Instant start = today.atStartOfDay(zoneId).toInstant();
         Instant end = today.plusDays(1).atStartOfDay(zoneId).toInstant();
 
-        return apiUsageLogRepository.findUsageBetweenHql(keyId, start, end);
+        return apiUsageLogRepository.findForKeyBetween(keyId, start, end)
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public long countRequestsToday(Long keyId) {
+    @Transactional(readOnly = true)
+    public int countRequestsToday(Long keyId) {
 
         ZoneId zoneId = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zoneId);
@@ -74,6 +89,15 @@ public class ApiUsageLogServiceImpl implements ApiUsageLogService {
         Instant start = today.atStartOfDay(zoneId).toInstant();
         Instant end = today.plusDays(1).atStartOfDay(zoneId).toInstant();
 
-        return apiUsageLogRepository.countUsageHql(keyId, start, end);
+        return apiUsageLogRepository.countForKeyBetween(keyId, start, end);
+    }
+
+    private ApiUsageLogDto toDto(ApiUsageLog log) {
+        ApiUsageLogDto dto = new ApiUsageLogDto();
+        dto.setId(log.getId());
+        dto.setApiKeyId(log.getApiKey() != null ? log.getApiKey().getId() : null);
+        dto.setEndpoint(log.getEndpoint());
+        dto.setTimestamp(log.getTimestamp());
+        return dto;
     }
 }
