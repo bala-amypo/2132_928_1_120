@@ -10,10 +10,9 @@ import java.io.IOException;
 
 @WebServlet(urlPatterns = "/simple-status")
 public class SimpleStatusServlet extends HttpServlet {
-
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    public void doGet(jakarta.servlet.http.HttpServletRequest req,
+                  jakarta.servlet.http.HttpServletResponse resp) throws java.io.IOException {
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("text/plain");
