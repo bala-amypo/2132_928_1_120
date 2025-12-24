@@ -7,8 +7,8 @@ import java.util.List;
 
 @Entity
 @Table(
-    name = "quota_plan",
-    uniqueConstraints = @UniqueConstraint(name = "uk_quota_plan_name", columnNames = "plan_name")
+        name = "quota_plan",
+        uniqueConstraints = @UniqueConstraint(name = "uk_quota_plan_name", columnNames = "plan_name")
 )
 public class QuotaPlan {
 
@@ -34,6 +34,7 @@ public class QuotaPlan {
     @Column(name="updated_at", nullable=false)
     private Instant updatedAt;
 
+    // ✅ Inverse mapping (no cascade delete)
     @OneToMany(mappedBy = "plan", fetch = FetchType.LAZY)
     private List<ApiKey> apiKeys = new ArrayList<>();
 
@@ -50,17 +51,22 @@ public class QuotaPlan {
         updatedAt = Instant.now();
     }
 
-    // getters & setters
     public Long getId() { return id; }
+
     public String getPlanName() { return planName; }
     public void setPlanName(String planName) { this.planName = planName; }
+
     public Integer getDailyLimit() { return dailyLimit; }
     public void setDailyLimit(Integer dailyLimit) { this.dailyLimit = dailyLimit; }
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+
     public List<ApiKey> getApiKeys() { return apiKeys; }
 }

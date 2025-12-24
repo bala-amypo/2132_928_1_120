@@ -1,6 +1,9 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.time.Instant;
 
 @Entity
@@ -17,8 +20,14 @@ public class ApiKey {
     @Column(name = "owner_id", nullable = false)
     private Long ownerId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id", nullable = false)
+    // ✅ Referential Integrity (FK + Delete rule)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "plan_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_api_key_quota_plan")
+    )
+    @OnDelete(action = OnDeleteAction.RESTRICT) // ❗don't allow deleting plan if keys exist
     private QuotaPlan plan;
 
     @Column(nullable = false)
@@ -29,10 +38,6 @@ public class ApiKey {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    /* ============================
-       JPA LIFECYCLE CALLBACKS
-       ============================ */
 
     @PrePersist
     protected void onCreate() {
@@ -46,51 +51,20 @@ public class ApiKey {
         this.updatedAt = Instant.now();
     }
 
-    /* ============================
-       GETTERS & SETTERS
-       ============================ */
+    public Long getId() { return id; }
 
-    public Long getId() {
-        return id;
-    }
+    public String getKeyValue() { return keyValue; }
+    public void setKeyValue(String keyValue) { this.keyValue = keyValue; }
 
-    public String getKeyValue() {
-        return keyValue;
-    }
+    public Long getOwnerId() { return ownerId; }
+    public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
 
-    public void setKeyValue(String keyValue) {
-        this.keyValue = keyValue;
-    }
+    public QuotaPlan getPlan() { return plan; }
+    public void setPlan(QuotaPlan plan) { this.plan = plan; }
 
-    public Long getOwnerId() {
-        return ownerId;
-    }
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
 
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public QuotaPlan getPlan() {
-        return plan;
-    }
-
-    public void setPlan(QuotaPlan plan) {
-        this.plan = plan;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
 }

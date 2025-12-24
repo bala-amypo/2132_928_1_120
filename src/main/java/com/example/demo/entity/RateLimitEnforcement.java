@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
 
@@ -18,7 +20,12 @@ public class RateLimitEnforcement {
 
     @NotNull(message = "apiKey is required")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "api_key_id", nullable = false)
+    @JoinColumn(
+            name = "api_key_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_enforcement_api_key")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE) // ✅ delete enforcement rows if ApiKey deleted
     @JsonIgnore
     private ApiKey apiKey;
 
