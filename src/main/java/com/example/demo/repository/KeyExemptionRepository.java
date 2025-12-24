@@ -7,8 +7,16 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface KeyExemptionRepository extends JpaRepository<KeyExemption, Long> {
+public interface KeyExemptionRepository
+        extends JpaRepository<KeyExemption, Long> {
 
-    @Query("select e from KeyExemption e where e.apiKey.id = :keyId")
+    /* REQUIRED BY TESTS */
+    Optional<KeyExemption> findByApiKey_Id(Long apiKeyId);
+
+    /* YOUR HQL (KEEP) */
+    @Query("""
+        select e from KeyExemption e
+        where e.apiKey.id = :keyId
+    """)
     Optional<KeyExemption> findByApiKeyId(@Param("keyId") Long keyId);
 }

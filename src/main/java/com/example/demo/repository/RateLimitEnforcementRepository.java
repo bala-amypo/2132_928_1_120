@@ -7,8 +7,17 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface RateLimitEnforcementRepository extends JpaRepository<RateLimitEnforcement, Long> {
+public interface RateLimitEnforcementRepository
+        extends JpaRepository<RateLimitEnforcement, Long> {
 
-    @Query("select e from RateLimitEnforcement e where e.apiKey.id = :keyId order by e.blockedAt desc")
+    /* REQUIRED BY TESTS */
+    List<RateLimitEnforcement> findByApiKey_Id(Long apiKeyId);
+
+    /* YOUR HQL (KEEP) */
+    @Query("""
+        select e from RateLimitEnforcement e
+        where e.apiKey.id = :keyId
+        order by e.blockedAt desc
+    """)
     List<RateLimitEnforcement> findByApiKeyId(@Param("keyId") Long keyId);
 }
