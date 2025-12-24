@@ -7,10 +7,10 @@ public class QuotaPlanDto {
 
     private Long id;
 
-    @NotBlank(message = "planName is required")
+    @NotBlank
     private String planName;
 
-    @NotNull(message = "dailyLimit is required")
+    @NotNull
     private Long dailyLimit;
 
     private String description;
@@ -25,9 +25,15 @@ public class QuotaPlanDto {
     public Long getDailyLimit() { return dailyLimit; }
     public void setDailyLimit(Long dailyLimit) { this.dailyLimit = dailyLimit; }
 
+    // ✅ overloads for test int/long
+    public void setDailyLimit(int dailyLimit) { this.dailyLimit = (long) dailyLimit; }
+    public void setDailyLimit(long dailyLimit) { this.dailyLimit = dailyLimit; }
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
+    public boolean isActive() { return Boolean.TRUE.equals(active); }
 }

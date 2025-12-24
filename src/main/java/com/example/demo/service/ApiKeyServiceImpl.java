@@ -29,23 +29,38 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     @Override
     public ApiKeyDto createApiKey(ApiKeyDto dto) {
 
-        apiKeyRepository.findByKeyValue(dto.getKeyValue())
-                .ifPresent(k -> { throw new BadRequestException("API Key already exists"); });
+        if (dto.getKeyValue() == null || dto.getKeyValue().trim().isEmpty()) {
+            throw new BadRequestException("Key value is required");
+        }
+
+        if (dto.getOwnerId() == null) {
+            throw new BadRequestException("OwnerId is required");
+        }
+
+        if (dto.getPlanId() == null) {
+            throw new BadRequestException("PlanId is required");
+        }
+
+        apiKeyRepository.findByKeyValue(dto.getKeyValue()).ifPresent(x -> {
+            throw new BadRequestException("API Key already exists");
+        });
 
         QuotaPlan plan = quotaPlanRepository.findById(dto.getPlanId())
                 .orElseThrow(() -> new ResourceNotFoundException("Quota plan not found"));
 
-        if (!Boolean.TRUE.equals(plan.getActive())) {
+        // works with isActive() or getActive()
+        if (!plan.isActive()) {
             throw new BadRequestException("Quota plan is inactive");
         }
 
         ApiKey key = new ApiKey();
-        key.setKeyValue(dto.getKeyValue());   // ✅ String → String
-        key.setOwnerId(dto.getOwnerId());     // ✅ String → String
-        key.setPlan(plan);                    // ✅ Long planId resolved to entity
+        key.setKeyValue(dto.getKeyValue().trim());
+        key.setOwnerId(dto.getOwnerId());          // ✅ Long
+        key.setPlan(plan);
         key.setActive(true);
 
         ApiKey saved = apiKeyRepository.save(key);
+
         return toDto(saved);
     }
 
@@ -55,11 +70,15 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         ApiKey key = apiKeyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("API Key not found"));
 
-        if (!Boolean.TRUE.equals(key.getActive())) {
+        if (!key.isActive()) {
             throw new BadRequestException("Cannot update inactive key");
         }
 
-        key.setOwnerId(dto.getOwnerId());
+        if (dto.getOwnerId() == null) {
+            throw new BadRequestException("OwnerId is required");
+        }
+
+        key.setOwnerId(dto.getOwnerId()); // ✅ Long
         ApiKey saved = apiKeyRepository.save(key);
 
         return toDto(saved);
@@ -98,11 +117,12 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         apiKeyRepository.save(key);
     }
 
+    // ✅ mapping method
     private ApiKeyDto toDto(ApiKey key) {
         ApiKeyDto dto = new ApiKeyDto();
         dto.setId(key.getId());
         dto.setKeyValue(key.getKeyValue());
-        dto.setOwnerId(key.getOwnerId());
+        dto.setOwnerId(key.getOwnerId());              // ✅ Long
         dto.setPlanId(key.getPlan().getId());
         dto.setActive(key.getActive());
         dto.setCreatedAt(key.getCreatedAt());
