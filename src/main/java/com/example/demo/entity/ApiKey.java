@@ -1,11 +1,13 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-
 import java.time.Instant;
 
 @Entity
-@Table(name = "api_key", uniqueConstraints = @UniqueConstraint(name = "uk_api_key_value", columnNames = "key_value"))
+@Table(
+        name = "api_key",
+        uniqueConstraints = @UniqueConstraint(name = "uk_api_key_value", columnNames = "key_value")
+)
 public class ApiKey {
 
     @Id
@@ -18,7 +20,7 @@ public class ApiKey {
     @Column(name="owner_id", nullable=false)
     private Long ownerId;
 
-    // ✅ Referential integrity: plan_id FK NOT NULL
+    // FK NOT NULL
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="plan_id", nullable=false)
     private QuotaPlan plan;
@@ -35,25 +37,38 @@ public class ApiKey {
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
-        if (active == null) active = true;
+        this.createdAt = now;
+        this.updatedAt = now;
+        if (this.active == null) this.active = true;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
+    // ---------- getters/setters (including ones tests usually expect) ----------
+
     public Long getId() { return id; }
+
+    // ✅ Many tests expect setId(...) to exist
+    public void setId(Long id) { this.id = id; }
+
     public String getKeyValue() { return keyValue; }
     public void setKeyValue(String keyValue) { this.keyValue = keyValue; }
+
     public Long getOwnerId() { return ownerId; }
     public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
+
     public QuotaPlan getPlan() { return plan; }
     public void setPlan(QuotaPlan plan) { this.plan = plan; }
+
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
+    // ✅ Many tests call isActive() instead of getActive()
+    public boolean isActive() { return Boolean.TRUE.equals(active); }
+
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }
