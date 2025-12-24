@@ -5,18 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface KeyExemptionRepository extends JpaRepository<KeyExemption, Long> {
 
-    @Query("select k from KeyExemption k where k.apiKey.id = :apiKeyId")
-    List<KeyExemption> findByApiKeyId(@Param("apiKeyId") Long apiKeyId);
-
-    @Query("""
-        select k from KeyExemption k
-        where k.apiKey.id = :apiKeyId
-        order by k.id desc
-    """)
-    Optional<KeyExemption> findLatestByApiKeyId(@Param("apiKeyId") Long apiKeyId);
+    @Query("select e from KeyExemption e where e.apiKey.id = :keyId")
+    Optional<KeyExemption> findByApiKeyId(@Param("keyId") Long keyId);
 }
