@@ -1,25 +1,18 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.QuotaPlanRequestDto;
-import com.example.demo.entity.QuotaPlan;
+import com.example.demo.dto.QuotaPlanDto;
 
 import java.util.List;
 
 public interface QuotaPlanService {
 
-    QuotaPlan create(QuotaPlanRequestDto dto);
+    QuotaPlanDto createQuotaPlan(QuotaPlanDto dto);
 
-    QuotaPlan getById(Long id);
+    QuotaPlanDto updateQuotaPlan(Long id, QuotaPlanDto dto);
 
-    QuotaPlan getByName(String name);
+    QuotaPlanDto getQuotaPlanById(Long id);
 
-    List<QuotaPlan> getAll();
+    List<QuotaPlanDto> getAllPlans();
 
-    List<QuotaPlan> getActivePlans();
-
-    QuotaPlan update(Long id, QuotaPlanRequestDto dto);
-
-    QuotaPlan deactivate(Long id);
-
-    void delete(Long id);
+    void deactivateQuotaPlan(Long id);
 }

@@ -6,16 +6,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface QuotaPlanRepository extends JpaRepository<QuotaPlan, Long> {
 
-    @Query("""
-        select count(q) > 0
-        from QuotaPlan q
-        where lower(q.planName) = lower(:planName)
-    """)
-    boolean existsByPlanNameIgnoreCase(@Param("planName") String planName);
+    // HQL by name
+    @Query("select q from QuotaPlan q where lower(q.planName) = lower(:name)")
+    Optional<QuotaPlan> findByPlanName(@Param("name") String name);
 
-    @Query("select q from QuotaPlan q where q.active = true")
-    List<QuotaPlan> findActivePlans();
+    // HQL active plans
+    @Query("select q from QuotaPlan q where q.active = :active")
+    List<QuotaPlan> findByActive(@Param("active") boolean active);
 }
