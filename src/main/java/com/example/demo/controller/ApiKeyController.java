@@ -1,10 +1,10 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.ApiKeyRequestDto;
-import com.example.demo.dto.ApiKeyResponseDto;
+import com.example.demo.dto.ApiKeyDto;
 import com.example.demo.service.ApiKeyService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,42 +20,36 @@ public class ApiKeyController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiKeyResponseDto create(@Valid @RequestBody ApiKeyRequestDto dto) {
-        return apiKeyService.create(dto);
-    }
-
-    @GetMapping("/{id}")
-    public ApiKeyResponseDto getById(@PathVariable Long id) {
-        return apiKeyService.getById(id);
-    }
-
-    // ✅ NEW: HQL GET BY keyValue
-    // Swagger: GET /api/api-keys/by-key/{keyValue}
-    @GetMapping("/by-key/{keyValue}")
-    public ApiKeyResponseDto getByKeyValue(@PathVariable String keyValue) {
-        return apiKeyService.getByKeyValue(keyValue);
-    }
-
-    @GetMapping
-    public List<ApiKeyResponseDto> getAll() {
-        return apiKeyService.getAll();
-    }
-
-    // ✅ NEW: HQL GET ONLY ACTIVE
-    // Swagger: GET /api/api-keys/active
-    @GetMapping("/active")
-    public List<ApiKeyResponseDto> getAllActive() {
-        return apiKeyService.getAllActive();
+    public ResponseEntity<ApiKeyDto> createApiKey(@Valid @RequestBody ApiKeyDto dto) {
+        ApiKeyDto created = apiKeyService.createApiKey(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public ApiKeyResponseDto update(@PathVariable Long id, @Valid @RequestBody ApiKeyRequestDto dto) {
-        return apiKeyService.update(id, dto);
+    public ResponseEntity<ApiKeyDto> updateApiKey(@PathVariable Long id, @Valid @RequestBody ApiKeyDto dto) {
+        ApiKeyDto updated = apiKeyService.updateApiKey(id, dto);
+        return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiKeyDto> getApiKeyById(@PathVariable Long id) {
+        return ResponseEntity.ok(apiKeyService.getApiKeyById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ApiKeyDto>> getAllApiKeys() {
+        return ResponseEntity.ok(apiKeyService.getAllApiKeys());
     }
 
     @PutMapping("/{id}/deactivate")
-    public ApiKeyResponseDto deactivate(@PathVariable Long id) {
-        return apiKeyService.deactivate(id);
+    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+        apiKeyService.deactivateApiKey(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ✅ optional endpoint: get by keyValue (HQL fetch by name-like field)
+    @GetMapping("/by-value/{keyValue}")
+    public ResponseEntity<ApiKeyDto> getByKeyValue(@PathVariable String keyValue) {
+        return ResponseEntity.ok(apiKeyService.getApiKeyByValue(keyValue));
     }
 }
