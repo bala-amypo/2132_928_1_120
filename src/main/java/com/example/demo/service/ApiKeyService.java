@@ -1,25 +1,20 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.ApiKeyRequestDto;
-import com.example.demo.dto.ApiKeyResponseDto;
+import com.example.demo.dto.ApiKeyDto;
 
 import java.util.List;
 
 public interface ApiKeyService {
 
-    ApiKeyResponseDto create(ApiKeyRequestDto dto);
+    ApiKeyDto createApiKey(ApiKeyDto dto);
 
-    ApiKeyResponseDto getById(Long id);
+    ApiKeyDto updateApiKey(Long id, ApiKeyDto dto);
 
-    // ✅ NEW: HQL fetch by keyValue
-    ApiKeyResponseDto getByKeyValue(String keyValue);
+    ApiKeyDto getApiKeyById(Long id);
 
-    List<ApiKeyResponseDto> getAll();
+    ApiKeyDto getApiKeyByValue(String keyValue);
 
-    // ✅ NEW: HQL fetch only active keys
-    List<ApiKeyResponseDto> getAllActive();
+    List<ApiKeyDto> getAllApiKeys();
 
-    ApiKeyResponseDto update(Long id, ApiKeyRequestDto dto);
-
-    ApiKeyResponseDto deactivate(Long id);
+    void deactivateApiKey(Long id);
 }
