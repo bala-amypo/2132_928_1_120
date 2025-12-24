@@ -7,19 +7,10 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 
 public class RateLimitEnforcementRequestDto {
-
-    @NotNull(message = "apiKeyId is required")
-    private Long apiKeyId;
-
-    @NotNull(message = "blockedAt is required")
+    @NotNull private Long apiKeyId;
     private Instant blockedAt;
-
-    @NotNull(message = "limitExceededBy is required")
-    @Min(value = 1, message = "limitExceededBy must be >= 1")
-    private Integer limitExceededBy;
-
-    @NotBlank(message = "message is required")
-    private String message;
+    @NotNull @Min(1) private Integer limitExceededBy;
+    @NotBlank private String message;
 
     public Long getApiKeyId() { return apiKeyId; }
     public Instant getBlockedAt() { return blockedAt; }
