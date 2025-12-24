@@ -1,8 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.AuthRequestDto;
-import com.example.demo.dto.AuthResponseDto;
-import com.example.demo.dto.RegisterRequestDto;
+import com.example.demo.dto.*;
 import com.example.demo.entity.UserAccount;
 import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.ResourceNotFoundException;
@@ -11,13 +9,8 @@ import com.example.demo.security.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
-@Transactional
 public class AuthServiceImpl implements AuthService {
 
     private final UserAccountRepository userAccountRepository;
@@ -35,12 +28,14 @@ public class AuthServiceImpl implements AuthService {
         this.jwtUtil = jwtUtil;
     }
 
+    // ✅ REGISTER RETURNS RegisterResponseDto (NOT AuthResponseDto)
     @Override
-    public AuthResponseDto register(RegisterRequestDto request) {
+    public RegisterResponseDto register(RegisterRequestDto request) {
 
-        if (userAccountRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new BadRequestException("Email already registered");
-        }
+        userAccountRepository.findByEmail(request.getEmail())
+                .ifPresent(u -> {
+                    throw new BadRequestException("Email already exists");
+                });
 
         UserAccount user = new UserAccount();
         user.setEmail(request.getEmail());
@@ -49,21 +44,14 @@ public class AuthServiceImpl implements AuthService {
 
         UserAccount saved = userAccountRepository.save(user);
 
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", saved.getRole());
-        claims.put("userId", saved.getId());
-
-        String token = jwtUtil.generateToken(claims, saved.getEmail());
-
-        AuthResponseDto response = new AuthResponseDto();
-        response.setUserId(saved.getId());
-        response.setEmail(saved.getEmail());
-        response.setRole(saved.getRole());
-        response.setToken(token);
-
-        return response;
+        return new RegisterResponseDto(
+                saved.getId(),
+                saved.getEmail(),
+                saved.getRole()
+        );
     }
 
+    // ✅ LOGIN RETURNS AuthResponseDto
     @Override
     public AuthResponseDto login(AuthRequestDto request) {
 
@@ -74,18 +62,13 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Invalid credentials");
         }
 
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", user.getRole());
-        claims.put("userId", user.getId());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
 
-        String token = jwtUtil.generateToken(claims, user.getEmail());
-
-        AuthResponseDto response = new AuthResponseDto();
-        response.setUserId(user.getId());
-        response.setEmail(user.getEmail());
-        response.setRole(user.getRole());
-        response.setToken(token);
-
-        return response;
+        return new AuthResponseDto(
+                user.getId(),
+                user.getEmail(),
+                user.getRole(),
+                token
+        );
     }
 }
