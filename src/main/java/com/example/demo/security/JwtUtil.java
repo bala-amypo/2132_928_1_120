@@ -19,9 +19,12 @@ public class JwtUtil {
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration}") long expirationMillis
     ) {
-        // secret must be long enough for HS256
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes());
         this.expirationMillis = expirationMillis;
+    }
+
+    public long getExpirationMillis() {
+        return expirationMillis;
     }
 
     public String generateToken(Map<String, Object> claims, String subject) {
