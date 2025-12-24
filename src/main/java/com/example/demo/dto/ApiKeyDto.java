@@ -1,25 +1,17 @@
 package com.example.demo.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 import java.time.Instant;
 
 public class ApiKeyDto {
     private Long id;
-
-    @NotBlank(message = "Key value is required")
     private String keyValue;
-
-    @NotNull(message = "Owner ID is required")
     private Long ownerId;
-
-    @NotNull(message = "Plan ID is required")
     private Long planId;
-
     private Boolean active;
     private Instant createdAt;
     private Instant updatedAt;
+
+    public ApiKeyDto() {}
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
