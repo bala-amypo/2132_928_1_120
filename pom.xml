@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="
-           http://maven.apache.org/POM/4.0.0
-           http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- ===================== -->
-    <!-- PROJECT INFORMATION -->
-    <!-- ===================== -->
     <groupId>com.example</groupId>
     <artifactId>demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -18,9 +14,6 @@
     <name>API Rate Limiter</name>
     <description>API Rate Limiter &amp; Quota Manager</description>
 
-    <!-- ===================== -->
-    <!-- SPRING BOOT PARENT -->
-    <!-- ===================== -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -28,9 +21,6 @@
         <relativePath/>
     </parent>
 
-    <!-- ===================== -->
-    <!-- JAVA VERSION -->
-    <!-- ===================== -->
     <properties>
         <java.version>17</java.version>
         <jjwt.version>0.11.5</jjwt.version>
@@ -38,11 +28,7 @@
         <testng.version>7.10.2</testng.version>
     </properties>
 
-    <!-- ===================== -->
-    <!-- DEPENDENCIES -->
-    <!-- ===================== -->
     <dependencies>
-
         <!-- Spring Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -93,7 +79,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Swagger / OpenAPI -->
+        <!-- Swagger -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -107,41 +93,32 @@
             <version>3.1.1</version>
         </dependency>
 
-    
-
-        
-        <!-- Spring Boot Test (includes spring-test: MockHttpServletRequest/Response etc.) -->
+        <!-- Spring Boot Test (keep ONLY ONCE) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <!-- IMPORTANT: remove JUnit so TestNG is primary -->
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
-        <!-- Spring Boot Test (brings spring-test, mock web, etc.) -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-test</artifactId>
-    <scope>test</scope>
-</dependency>
-
-<!-- TestNG -->
-<dependency>
-    <groupId>org.testng</groupId>
-    <artifactId>testng</artifactId>
-    <version>${testng.version}</version>
-    <scope>test</scope>
-</dependency>
-
+        <!-- TestNG -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
-    <!-- ===================== -->
-    <!-- BUILD CONFIG -->
-    <!-- ===================== -->
     <build>
-
         <plugins>
-
-            <!-- Java Compiler -->
+            <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -152,7 +129,20 @@
                 </configuration>
             </plugin>
 
-            <!-- Spring Boot Plugin -->
+            <!-- Surefire: run TestNG tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <!-- Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -160,22 +150,7 @@
                     <mainClass>com.example.demo.DemoApplication</mainClass>
                 </configuration>
             </plugin>
-            <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-surefire-plugin</artifactId>
-    <version>3.2.5</version>
-    <configuration>
-        <useModulePath>false</useModulePath>
-        <includes>
-            <include>**/*Test.java</include>
-        </includes>
-    </configuration>
-</plugin>
-
-           
-
         </plugins>
-
     </build>
 
 </project>
