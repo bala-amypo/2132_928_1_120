@@ -1,53 +1,46 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import java.time.Instant;
+
+import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "api_key",
-        uniqueConstraints = @UniqueConstraint(name = "uk_api_key_value", columnNames = "key_value")
-)
+@Table(name = "api_key")
 public class ApiKey {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "key_value", nullable = false, length = 200)
-    private String keyValue;
+    @Column(unique = true, nullable = false)
+    private String keyValue; // ✅ String
 
-    @Column(name = "owner_id", nullable = false, length = 100)
-    private String ownerId;
+    @Column(nullable = false)
+    private String ownerId;  // ✅ String
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "plan_id", nullable = false, foreignKey = @ForeignKey(name = "fk_api_key_plan"))
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plan_id", nullable = false)
     private QuotaPlan plan;
 
-    @Column(name = "active", nullable = false)
+    @Column(nullable = false)
     private Boolean active = true;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
     @PrePersist
-    public void onCreate() {
-        Instant now = Instant.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-        if (this.active == null) this.active = true;
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
-    public void onUpdate() {
-        this.updatedAt = Instant.now();
-        if (this.active == null) this.active = true;
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
-
-    // Getters/Setters
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -64,6 +57,9 @@ public class ApiKey {
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
 
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
