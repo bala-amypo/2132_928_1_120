@@ -25,7 +25,6 @@
         <java.version>17</java.version>
         <jjwt.version>0.11.5</jjwt.version>
         <springdoc.version>2.1.0</springdoc.version>
-        <testng.version>7.10.2</testng.version>
     </properties>
 
     <dependencies>
@@ -79,7 +78,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Swagger -->
+        <!-- Swagger / OpenAPI -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -93,21 +92,19 @@
             <version>3.1.1</version>
         </dependency>
 
-        <!-- Spring Boot Test (keep ONLY ONCE) -->
+        <!-- Tests (JUnit 5 + Spring Test + Mockito etc.) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
             <exclusions>
-                <!-- IMPORTANT: remove JUnit so TestNG is primary -->
+                <!-- remove JUnit4 vintage engine to avoid confusion -->
                 <exclusion>
                     <groupId>org.junit.vintage</groupId>
                     <artifactId>junit-vintage-engine</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
-
-        
     </dependencies>
 
     <build>
@@ -118,13 +115,19 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <release>17</release>
                 </configuration>
             </plugin>
 
-          
-            
+            <!-- Surefire (JUnit Platform auto) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
 
             <!-- Spring Boot -->
             <plugin>
