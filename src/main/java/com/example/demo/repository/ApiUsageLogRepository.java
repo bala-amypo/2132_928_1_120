@@ -10,16 +10,15 @@ import java.util.List;
 
 public interface ApiUsageLogRepository extends JpaRepository<ApiUsageLog, Long> {
 
-    // ✅ Keep ONLY ONE of these methods (delete any duplicate in your file)
     List<ApiUsageLog> findByApiKey_Id(Long apiKeyId);
 
-    @Query("select l from ApiUsageLog l where l.apiKey.id = :apiKeyId and l.requestTimestamp between :from and :to")
+    @Query("select l from ApiUsageLog l where l.apiKey.id = :apiKeyId and l.timestamp between :from and :to")
     List<ApiUsageLog> findForKeyBetween(@Param("apiKeyId") Long apiKeyId,
                                         @Param("from") Instant from,
                                         @Param("to") Instant to);
 
-    @Query("select count(l) from ApiUsageLog l where l.apiKey.id = :apiKeyId and l.requestTimestamp between :from and :to")
-    long countForKeyBetween(@Param("apiKeyId") Long apiKeyId,
-                            @Param("from") Instant from,
-                            @Param("to") Instant to);
+    @Query("select count(l) from ApiUsageLog l where l.apiKey.id = :apiKeyId and l.timestamp between :from and :to")
+    int countForKeyBetween(@Param("apiKeyId") Long apiKeyId,
+                           @Param("from") Instant from,
+                           @Param("to") Instant to);
 }
