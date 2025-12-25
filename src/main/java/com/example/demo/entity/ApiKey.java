@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -47,13 +48,10 @@ public class ApiKey {
     public String getKeyValue() { return keyValue; }
     public void setKeyValue(String keyValue) { this.keyValue = keyValue; }
 
-    // ✅ overload for tests passing long/int
-    public void setKeyValue(long keyValue) { this.keyValue = String.valueOf(keyValue); }
-    public void setKeyValue(int keyValue) { this.keyValue = String.valueOf(keyValue); }
-
     public Long getOwnerId() { return ownerId; }
     public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
     public void setOwnerId(long ownerId) { this.ownerId = ownerId; }
+    public void setOwnerId(int ownerId) { this.ownerId = (long) ownerId; }
 
     public QuotaPlan getPlan() { return plan; }
     public void setPlan(QuotaPlan plan) { this.plan = plan; }
