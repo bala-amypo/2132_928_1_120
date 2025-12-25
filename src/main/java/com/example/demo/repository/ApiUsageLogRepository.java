@@ -10,15 +10,18 @@ import java.util.List;
 
 public interface ApiUsageLogRepository extends JpaRepository<ApiUsageLog, Long> {
 
-    @Query("select l from ApiUsageLog l where l.apiKey.id = :keyId order by l.timestamp asc")
-    List<ApiUsageLog> findByApiKeyId(@Param("keyId") Long keyId);
+    // ✅ test expects this exact method name
+    List<ApiUsageLog> findByApiKey_Id(long apiKeyId);
 
-    @Query("select l from ApiUsageLog l where l.apiKey.id = :keyId and l.timestamp >= :start and l.timestamp < :end order by l.timestamp asc")
+    // (optional, keep if you already use)
+    List<ApiUsageLog> findByApiKeyId(Long apiKeyId);
+
+    @Query("select a from ApiUsageLog a where a.apiKey.id = :keyId and a.timestamp >= :start and a.timestamp < :end")
     List<ApiUsageLog> findForKeyBetween(@Param("keyId") Long keyId,
                                         @Param("start") Instant start,
                                         @Param("end") Instant end);
 
-    @Query("select count(l) from ApiUsageLog l where l.apiKey.id = :keyId and l.timestamp >= :start and l.timestamp < :end")
+    @Query("select count(a) from ApiUsageLog a where a.apiKey.id = :keyId and a.timestamp >= :start and a.timestamp < :end")
     int countForKeyBetween(@Param("keyId") Long keyId,
                            @Param("start") Instant start,
                            @Param("end") Instant end);
