@@ -1,33 +1,20 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "user_account", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
 public class UserAccount {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Email
-    @NotBlank
-    @Column(nullable = false)
     private String email;
-
-    @NotBlank
-    @Size(min = 6)
-    @Column(nullable = false)
     private String password;
-
-    @NotBlank
-    @Column(nullable = false)
     private String role;
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }

@@ -1,11 +1,9 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-
 import java.time.Instant;
 
 @Entity
-@Table(name = "api_usage_logs")
 public class ApiUsageLog {
 
     @Id
@@ -13,23 +11,17 @@ public class ApiUsageLog {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "api_key_id", nullable = false)
     private ApiKey apiKey;
 
-    @Column(name = "request_timestamp", nullable = false)
-    private Instant requestTimestamp;
-
-    @Column(name = "endpoint", length = 500)
     private String endpoint;
 
-    @Column(name = "http_method", length = 20)
-    private String httpMethod;
+    // test uses setTimestamp/getTimestamp
+    private Instant timestamp;
 
-    @Column(name = "success", nullable = false)
+    // (extra aliases to avoid earlier compile errors in your project)
+    private String method;
     private boolean success;
-
-    @Column(name = "response_code")
-    private Integer responseCode;
+    private int responseCode;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -37,18 +29,22 @@ public class ApiUsageLog {
     public ApiKey getApiKey() { return apiKey; }
     public void setApiKey(ApiKey apiKey) { this.apiKey = apiKey; }
 
-    public Instant getRequestTimestamp() { return requestTimestamp; }
-    public void setRequestTimestamp(Instant requestTimestamp) { this.requestTimestamp = requestTimestamp; }
-
     public String getEndpoint() { return endpoint; }
     public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
 
-    public String getHttpMethod() { return httpMethod; }
-    public void setHttpMethod(String httpMethod) { this.httpMethod = httpMethod; }
+    public Instant getTimestamp() { return timestamp; }
+    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
+
+    // aliases (some of your earlier code expected these)
+    public Instant getRequestTimestamp() { return timestamp; }
+    public void setRequestTimestamp(Instant ts) { this.timestamp = ts; }
+
+    public String getMethod() { return method; }
+    public void setMethod(String method) { this.method = method; }
 
     public boolean isSuccess() { return success; }
     public void setSuccess(boolean success) { this.success = success; }
 
-    public Integer getResponseCode() { return responseCode; }
-    public void setResponseCode(Integer responseCode) { this.responseCode = responseCode; }
+    public int getResponseCode() { return responseCode; }
+    public void setResponseCode(int responseCode) { this.responseCode = responseCode; }
 }

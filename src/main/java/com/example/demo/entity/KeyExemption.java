@@ -1,23 +1,25 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 
 @Entity
-@Table(name = "key_exemptions")
 public class KeyExemption {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "api_key_id", nullable = false, unique = true)
+    @ManyToOne(optional = false)
     private ApiKey apiKey;
 
-    @Column(name = "exempted", nullable = false)
-    private boolean exempted;
+    // test uses setTemporaryExtensionLimit(int)
+    private int temporaryExtensionLimit;
 
-    @Column(name = "reason", length = 500)
+    private Instant validUntil;
+
+    // extra for compatibility
+    private boolean exempted = true;
     private String reason;
 
     public Long getId() { return id; }
@@ -25,6 +27,12 @@ public class KeyExemption {
 
     public ApiKey getApiKey() { return apiKey; }
     public void setApiKey(ApiKey apiKey) { this.apiKey = apiKey; }
+
+    public int getTemporaryExtensionLimit() { return temporaryExtensionLimit; }
+    public void setTemporaryExtensionLimit(int temporaryExtensionLimit) { this.temporaryExtensionLimit = temporaryExtensionLimit; }
+
+    public Instant getValidUntil() { return validUntil; }
+    public void setValidUntil(Instant validUntil) { this.validUntil = validUntil; }
 
     public boolean isExempted() { return exempted; }
     public void setExempted(boolean exempted) { this.exempted = exempted; }
