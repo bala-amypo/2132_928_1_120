@@ -1,7 +1,10 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.*;
-import com.example.demo.repository.*;
+import com.example.demo.entity.KeyExemption;
+import com.example.demo.entity.RateLimitEnforcement;
+import com.example.demo.repository.ApiUsageLogRepository;
+import com.example.demo.repository.KeyExemptionRepository;
+import com.example.demo.repository.RateLimitEnforcementRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,35 +16,21 @@ import java.util.Optional;
 @Transactional
 public class ApiRateLimiterQuotaManager {
 
-    private final ApiKeyRepository apiKeyRepository;
-    private final QuotaPlanRepository quotaPlanRepository;
     private final ApiUsageLogRepository apiUsageLogRepository;
     private final RateLimitEnforcementRepository enforcementRepository;
     private final KeyExemptionRepository exemptionRepository;
 
-    public ApiRateLimiterQuotaManager(ApiKeyRepository apiKeyRepository,
-                                      QuotaPlanRepository quotaPlanRepository,
-                                      ApiUsageLogRepository apiUsageLogRepository,
+    public ApiRateLimiterQuotaManager(ApiUsageLogRepository apiUsageLogRepository,
                                       RateLimitEnforcementRepository enforcementRepository,
                                       KeyExemptionRepository exemptionRepository) {
-        this.apiKeyRepository = apiKeyRepository;
-        this.quotaPlanRepository = quotaPlanRepository;
         this.apiUsageLogRepository = apiUsageLogRepository;
         this.enforcementRepository = enforcementRepository;
         this.exemptionRepository = exemptionRepository;
     }
 
     public boolean isKeyExempted(Long apiKeyId) {
-        List<KeyExemption> exemptions = exemptionRepository.findByApiKey_Id(apiKeyId);
-        return exemptions.stream().anyMatch(KeyExemption::isExempted);
-    }
-
-    public Optional<RateLimitEnforcement> getEnforcement(Long apiKeyId) {
-        return enforcementRepository.findByApiKey_Id(apiKeyId);
-    }
-
-    public List<ApiUsageLog> getUsageLogs(Long apiKeyId) {
-        return apiUsageLogRepository.findByApiKey_Id(apiKeyId);
+        List<KeyExemption> list = exemptionRepository.findByApiKey_Id(apiKeyId);
+        return list.stream().anyMatch(KeyExemption::isExempted);
     }
 
     public boolean isBlockedNow(Long apiKeyId) {

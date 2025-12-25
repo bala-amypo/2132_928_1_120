@@ -1,21 +1,15 @@
 package com.example.demo.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 import java.time.Instant;
 
 public class ApiUsageLogDto {
-
     private Long id;
-
-    @NotNull
     private Long apiKeyId;
-
-    @NotBlank
+    private Instant requestTimestamp;
     private String endpoint;
-
-    private Instant timestamp;
+    private String httpMethod;
+    private boolean success;
+    private Integer responseCode;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -23,9 +17,18 @@ public class ApiUsageLogDto {
     public Long getApiKeyId() { return apiKeyId; }
     public void setApiKeyId(Long apiKeyId) { this.apiKeyId = apiKeyId; }
 
+    public Instant getRequestTimestamp() { return requestTimestamp; }
+    public void setRequestTimestamp(Instant requestTimestamp) { this.requestTimestamp = requestTimestamp; }
+
     public String getEndpoint() { return endpoint; }
     public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
 
-    public Instant getTimestamp() { return timestamp; }
-    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
+    public String getHttpMethod() { return httpMethod; }
+    public void setHttpMethod(String httpMethod) { this.httpMethod = httpMethod; }
+
+    public boolean isSuccess() { return success; }
+    public void setSuccess(boolean success) { this.success = success; }
+
+    public Integer getResponseCode() { return responseCode; }
+    public void setResponseCode(Integer responseCode) { this.responseCode = responseCode; }
 }
