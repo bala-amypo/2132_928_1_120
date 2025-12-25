@@ -106,29 +106,10 @@
   </dependencies>
 
   <build>
+    <!-- Make Maven compile tests ONLY from ../test_saved/java -->
+    <testSourceDirectory>${project.basedir}/../test_saved/java</testSourceDirectory>
+
     <plugins>
-
-      <!-- Add ../test_saved/java as test sources -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>3.5.0</version>
-        <executions>
-          <execution>
-            <id>add-test-source</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>${project.basedir}/../test_saved/java</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -138,16 +119,25 @@
         </configuration>
       </plugin>
 
-      <!-- Run TestNG using your real testng.xml location -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
         <configuration>
           <useModulePath>false</useModulePath>
+
+          <!-- Your testng.xml is inside test_saved/java/com/example/demo/ -->
           <suiteXmlFiles>
             <suiteXmlFile>${project.basedir}/../test_saved/java/com/example/demo/testng.xml</suiteXmlFile>
           </suiteXmlFiles>
+
+          <!-- Optional: show TestNG output -->
+          <properties>
+            <property>
+              <name>usedefaultlisteners</name>
+              <value>true</value>
+            </property>
+          </properties>
         </configuration>
       </plugin>
 
@@ -158,7 +148,6 @@
           <mainClass>com.example.demo.DemoApplication</mainClass>
         </configuration>
       </plugin>
-
     </plugins>
   </build>
 
