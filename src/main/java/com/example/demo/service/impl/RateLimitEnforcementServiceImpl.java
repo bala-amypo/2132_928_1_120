@@ -7,44 +7,50 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.ApiKeyRepository;
 import com.example.demo.repository.RateLimitEnforcementRepository;
 import com.example.demo.service.RateLimitEnforcementService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Service
+@Transactional
 public class RateLimitEnforcementServiceImpl implements RateLimitEnforcementService {
 
-    private final RateLimitEnforcementRepository enforceRepo;
-    private final ApiKeyRepository apiKeyRepo;
+    private final RateLimitEnforcementRepository enforcementRepository;
+    private final ApiKeyRepository apiKeyRepository;
 
-    public RateLimitEnforcementServiceImpl(RateLimitEnforcementRepository enforceRepo, ApiKeyRepository apiKeyRepo) {
-        this.enforceRepo = enforceRepo;
-        this.apiKeyRepo = apiKeyRepo;
+    public RateLimitEnforcementServiceImpl(RateLimitEnforcementRepository enforcementRepository,
+                                          ApiKeyRepository apiKeyRepository) {
+        this.enforcementRepository = enforcementRepository;
+        this.apiKeyRepository = apiKeyRepository;
     }
 
     @Override
-    public RateLimitEnforcement createEnforcement(RateLimitEnforcement e) {
-        if (e.getApiKey() == null || e.getApiKey().getId() == null) {
-            throw new BadRequestException("ApiKey required");
-        }
-        ApiKey k = apiKeyRepo.findById(e.getApiKey().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found"));
+    public RateLimitEnforcement createEnforcement(RateLimitEnforcement enforcement) {
+        if (enforcement == null) throw new BadRequestException("Enforcement cannot be null");
+        if (enforcement.getApiKey() == null || enforcement.getApiKey().getId() == null)
+            throw new BadRequestException("ApiKey is required");
 
-        if (e.getLimitExceededBy() <= 0) {
-            // test expects 0 fails
+        if (enforcement.getLimitExceededBy() <= 0)
             throw new BadRequestException("limitExceededBy must be > 0");
-        }
 
-        e.setApiKey(k);
-        return enforceRepo.save(e);
-    }
+        // Validate apiKey exists (your tests expect this lookup)
+        ApiKey key = apiKeyRepository.findById(enforcement.getApiKey().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found: " + enforcement.getApiKey().getId()));
 
-    @Override
-    public List<RateLimitEnforcement> getEnforcementsForKey(Long apiKeyId) {
-        return enforceRepo.findByApiKey_Id(apiKeyId);
+        enforcement.setApiKey(key);
+
+        return enforcementRepository.save(enforcement);
     }
 
     @Override
     public RateLimitEnforcement getEnforcementById(Long id) {
-        return enforceRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Enforcement not found"));
+        return enforcementRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Enforcement not found: " + id));
+    }
+
+    @Override
+    public List<RateLimitEnforcement> getEnforcementsForKey(Long apiKeyId) {
+        return enforcementRepository.findByApiKey_Id(apiKeyId);
     }
 }
