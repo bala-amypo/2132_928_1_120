@@ -2,27 +2,9 @@ package com.example.demo.repository;
 
 import com.example.demo.entity.ApiUsageLog;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
-import java.time.Instant;
 import java.util.List;
 
 public interface ApiUsageLogRepository extends JpaRepository<ApiUsageLog, Long> {
-
-    // ✅ tests expect this exact derived name
     List<ApiUsageLog> findByApiKey_Id(long apiKeyId);
-
-    // keep your existing ones if used by your service
-    List<ApiUsageLog> findByApiKeyId(Long apiKeyId);
-
-    @Query("select l from ApiUsageLog l where l.apiKey.id = :keyId and l.timestamp between :start and :end")
-    List<ApiUsageLog> findForKeyBetween(@Param("keyId") Long keyId,
-                                        @Param("start") Instant start,
-                                        @Param("end") Instant end);
-
-    @Query("select count(l) from ApiUsageLog l where l.apiKey.id = :keyId and l.timestamp between :start and :end")
-    int countForKeyBetween(@Param("keyId") Long keyId,
-                           @Param("start") Instant start,
-                           @Param("end") Instant end);
 }

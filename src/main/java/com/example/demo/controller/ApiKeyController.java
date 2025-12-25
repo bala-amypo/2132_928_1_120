@@ -1,54 +1,39 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ApiKeyDto;
-import com.example.demo.service.ApiKeyService;
+import com.example.demo.mapper.DtoMapper;
+import com.example.demo.repository.ApiKeyRepository;
+import com.example.demo.entity.ApiKey;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/api-keys")
+@RequestMapping("/api/keys")
 public class ApiKeyController {
 
-    private final ApiKeyService apiKeyService;
+    private final ApiKeyRepository apiKeyRepository;
 
-    public ApiKeyController(ApiKeyService apiKeyService) {
-        this.apiKeyService = apiKeyService;
+    public ApiKeyController(ApiKeyRepository apiKeyRepository) {
+        this.apiKeyRepository = apiKeyRepository;
     }
 
     @PostMapping
-    public ResponseEntity<ApiKeyDto> createApiKey(@Valid @RequestBody ApiKeyDto dto) {
-        ApiKeyDto created = apiKeyService.createApiKey(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiKeyDto> updateApiKey(@PathVariable Long id, @Valid @RequestBody ApiKeyDto dto) {
-        ApiKeyDto updated = apiKeyService.updateApiKey(id, dto);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<ApiKeyDto> create(@Valid @RequestBody ApiKeyDto dto) {
+        ApiKey saved = apiKeyRepository.save(DtoMapper.toEntity(dto));
+        return ResponseEntity.ok(DtoMapper.toDto(saved));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiKeyDto> getApiKeyById(@PathVariable Long id) {
-        return ResponseEntity.ok(apiKeyService.getApiKeyById(id));
+    public ResponseEntity<ApiKeyDto> get(@PathVariable Long id) {
+        ApiKey e = apiKeyRepository.findById(id).orElseThrow();
+        return ResponseEntity.ok(DtoMapper.toDto(e));
     }
 
     @GetMapping
-    public ResponseEntity<List<ApiKeyDto>> getAllApiKeys() {
-        return ResponseEntity.ok(apiKeyService.getAllApiKeys());
-    }
-
-    @PutMapping("/{id}/deactivate")
-    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
-        apiKeyService.deactivateApiKey(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/by-value/{keyValue}")
-    public ResponseEntity<ApiKeyDto> getByKeyValue(@PathVariable String keyValue) {
-        return ResponseEntity.ok(apiKeyService.getApiKeyByValue(keyValue));
+    public ResponseEntity<List<ApiKeyDto>> getAll() {
+        return ResponseEntity.ok(DtoMapper.toApiKeyDtos(apiKeyRepository.findAll()));
     }
 }
