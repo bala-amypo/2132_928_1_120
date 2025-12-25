@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface RateLimitEnforcementRepository extends JpaRepository<RateLimitEnforcement, Long> {
-    Optional<RateLimitEnforcement> findByApiKeyId(Long apiKeyId);
-    java.util.Optional<com.example.demo.entity.RateLimitEnforcement> findByApiKey_Id(long apiKeyId);
+
+    // ✅ Enforcement should be ONE per key → Optional (NOT List)
+    Optional<RateLimitEnforcement> findByApiKey_Id(Long apiKeyId);
 }
