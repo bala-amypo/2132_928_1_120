@@ -3,7 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.dto.KeyExemptionDto;
 import com.example.demo.service.KeyExemptionService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,21 +18,25 @@ public class KeyExemptionController {
         this.exemptionService = exemptionService;
     }
 
+    // ✅ replaces createExemption(...)
     @PostMapping
     public ResponseEntity<KeyExemptionDto> create(@Valid @RequestBody KeyExemptionDto dto) {
-        KeyExemptionDto saved = exemptionService.createExemption(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.ok(exemptionService.upsertExemption(dto));
     }
 
+    // ✅ replaces updateExemption(id, dto)
+    // We ignore path id and rely on dto.apiKeyId for upsert (or you can enforce match)
     @PutMapping("/{id}")
     public ResponseEntity<KeyExemptionDto> update(@PathVariable Long id, @Valid @RequestBody KeyExemptionDto dto) {
-        KeyExemptionDto updated = exemptionService.updateExemption(id, dto);
-        return ResponseEntity.ok(updated);
+        // optional safety: keep id as dto.id
+        dto.setId(id);
+        return ResponseEntity.ok(exemptionService.upsertExemption(dto));
     }
 
-    @GetMapping("/key/{keyId}")
-    public ResponseEntity<KeyExemptionDto> getByKey(@PathVariable Long keyId) {
-        return ResponseEntity.ok(exemptionService.getExemptionByKey(keyId));
+    // ✅ replaces getExemptionByKey(apiKeyId)
+    @GetMapping("/by-key/{apiKeyId}")
+    public ResponseEntity<List<KeyExemptionDto>> getByKey(@PathVariable Long apiKeyId) {
+        return ResponseEntity.ok(exemptionService.getExemptionsForKey(apiKeyId));
     }
 
     @GetMapping
