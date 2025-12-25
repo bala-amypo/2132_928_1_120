@@ -1,14 +1,13 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.ApiKeyDto;
-
+import com.example.demo.entity.ApiKey;
 import java.util.List;
 
 public interface ApiKeyService {
-    ApiKeyDto createApiKey(ApiKeyDto dto);
-    ApiKeyDto updateApiKey(Long id, ApiKeyDto dto);
-    ApiKeyDto getApiKeyById(Long id);
-    ApiKeyDto getApiKeyByValue(String keyValue);
-    List<ApiKeyDto> getAllApiKeys();
+    ApiKey createApiKey(ApiKey apiKey);
+    ApiKey updateApiKey(Long id, ApiKey apiKey);
+    ApiKey getApiKeyById(Long id);
+    ApiKey getApiKeyByValue(String keyValue);
+    List<ApiKey> getAllApiKeys();
     void deactivateApiKey(Long id);
 }

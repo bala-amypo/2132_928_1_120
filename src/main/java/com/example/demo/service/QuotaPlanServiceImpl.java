@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.QuotaPlanDto;
 import com.example.demo.entity.QuotaPlan;
 import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.ResourceNotFoundException;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -22,62 +20,57 @@ public class QuotaPlanServiceImpl implements QuotaPlanService {
     }
 
     @Override
-    public QuotaPlanDto createQuotaPlan(QuotaPlanDto dto) {
+    public QuotaPlan createQuotaPlan(QuotaPlan plan) {
 
-        if (dto.getDailyLimit() == null || dto.getDailyLimit() <= 0) {
+        if (plan.getDailyLimit() == null || plan.getDailyLimit() <= 0) {
             throw new BadRequestException("Daily limit must be > 0");
         }
 
-        quotaPlanRepository.findByPlanName(dto.getPlanName())
+        quotaPlanRepository.findByPlanName(plan.getPlanName())
                 .ifPresent(x -> { throw new BadRequestException("Plan name already exists"); });
 
-        QuotaPlan plan = new QuotaPlan();
-        plan.setPlanName(dto.getPlanName());
-        plan.setDailyLimit(dto.getDailyLimit());
-        plan.setDescription(dto.getDescription());
-        plan.setActive(dto.getActive() != null ? dto.getActive() : true);
+        if (plan.getActive() == null) plan.setActive(true);
 
-        return toDto(quotaPlanRepository.save(plan));
+        return quotaPlanRepository.save(plan);
     }
 
     @Override
-    public QuotaPlanDto updateQuotaPlan(Long id, QuotaPlanDto dto) {
+    public QuotaPlan updateQuotaPlan(Long id, QuotaPlan incoming) {
 
         QuotaPlan plan = quotaPlanRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Quota plan not found"));
 
-        if (dto.getDailyLimit() == null || dto.getDailyLimit() <= 0) {
+        if (incoming.getDailyLimit() == null || incoming.getDailyLimit() <= 0) {
             throw new BadRequestException("Daily limit must be > 0");
         }
 
-        if (dto.getPlanName() != null && !dto.getPlanName().equalsIgnoreCase(plan.getPlanName())) {
-            quotaPlanRepository.findByPlanName(dto.getPlanName())
+        if (incoming.getPlanName() != null && !incoming.getPlanName().equalsIgnoreCase(plan.getPlanName())) {
+            quotaPlanRepository.findByPlanName(incoming.getPlanName())
                     .ifPresent(x -> { throw new BadRequestException("Plan name already exists"); });
-            plan.setPlanName(dto.getPlanName());
+            plan.setPlanName(incoming.getPlanName());
         }
 
-        plan.setDailyLimit(dto.getDailyLimit());
-        plan.setDescription(dto.getDescription());
-        if (dto.getActive() != null) plan.setActive(dto.getActive());
+        plan.setDailyLimit(incoming.getDailyLimit());
+        plan.setDescription(incoming.getDescription());
 
-        return toDto(quotaPlanRepository.save(plan));
+        if (incoming.getActive() != null) {
+            plan.setActive(incoming.getActive());
+        }
+
+        return quotaPlanRepository.save(plan);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public QuotaPlanDto getQuotaPlanById(Long id) {
-        QuotaPlan plan = quotaPlanRepository.findById(id)
+    public QuotaPlan getQuotaPlanById(Long id) {
+        return quotaPlanRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Quota plan not found"));
-        return toDto(plan);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<QuotaPlanDto> getAllPlans() {
-        return quotaPlanRepository.findAll()
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public List<QuotaPlan> getAllPlans() {
+        return quotaPlanRepository.findAll();
     }
 
     @Override
@@ -86,15 +79,5 @@ public class QuotaPlanServiceImpl implements QuotaPlanService {
                 .orElseThrow(() -> new ResourceNotFoundException("Quota plan not found"));
         plan.setActive(false);
         quotaPlanRepository.save(plan);
-    }
-
-    private QuotaPlanDto toDto(QuotaPlan plan) {
-        QuotaPlanDto dto = new QuotaPlanDto();
-        dto.setId(plan.getId());
-        dto.setPlanName(plan.getPlanName());
-        dto.setDailyLimit(plan.getDailyLimit());
-        dto.setDescription(plan.getDescription());
-        dto.setActive(plan.getActive());
-        return dto;
     }
 }

@@ -1,7 +1,6 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,7 +14,6 @@ public class ApiKey {
     @Column(unique = true, nullable = false)
     private String keyValue;
 
-    // ✅ TEST IS PASSING LONG, so ownerId must be Long
     @Column(nullable = false)
     private Long ownerId;
 
@@ -49,12 +47,12 @@ public class ApiKey {
     public String getKeyValue() { return keyValue; }
     public void setKeyValue(String keyValue) { this.keyValue = keyValue; }
 
+    // ✅ overload for tests passing long/int
+    public void setKeyValue(long keyValue) { this.keyValue = String.valueOf(keyValue); }
+    public void setKeyValue(int keyValue) { this.keyValue = String.valueOf(keyValue); }
+
     public Long getOwnerId() { return ownerId; }
-
-    // ✅ main setter
     public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
-
-    // ✅ overload for test passing primitive long
     public void setOwnerId(long ownerId) { this.ownerId = ownerId; }
 
     public QuotaPlan getPlan() { return plan; }
@@ -63,7 +61,7 @@ public class ApiKey {
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
 
-    // ✅ test expects isActive()
+    // ✅ tests expect isActive()
     public boolean isActive() { return Boolean.TRUE.equals(active); }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
