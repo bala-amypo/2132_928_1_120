@@ -1,8 +1,7 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.ApiKeyDto;
+import com.example.demo.entity.ApiKey;
 import com.example.demo.service.ApiKeyService;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,24 +19,22 @@ public class ApiKeyController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiKeyDto> createApiKey(@Valid @RequestBody ApiKeyDto dto) {
-        ApiKeyDto created = apiKeyService.createApiKey(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<ApiKey> create(@RequestBody ApiKey key) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiKeyService.createApiKey(key));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiKeyDto> updateApiKey(@PathVariable Long id, @Valid @RequestBody ApiKeyDto dto) {
-        ApiKeyDto updated = apiKeyService.updateApiKey(id, dto);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<ApiKey> update(@PathVariable Long id, @RequestBody ApiKey key) {
+        return ResponseEntity.ok(apiKeyService.updateApiKey(id, key));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiKeyDto> getApiKeyById(@PathVariable Long id) {
+    public ResponseEntity<ApiKey> getById(@PathVariable Long id) {
         return ResponseEntity.ok(apiKeyService.getApiKeyById(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<ApiKeyDto>> getAllApiKeys() {
+    public ResponseEntity<List<ApiKey>> getAll() {
         return ResponseEntity.ok(apiKeyService.getAllApiKeys());
     }
 
@@ -47,9 +44,8 @@ public class ApiKeyController {
         return ResponseEntity.noContent().build();
     }
 
-    // ✅ optional endpoint: get by keyValue (HQL fetch by name-like field)
     @GetMapping("/by-value/{keyValue}")
-    public ResponseEntity<ApiKeyDto> getByKeyValue(@PathVariable String keyValue) {
+    public ResponseEntity<ApiKey> getByValue(@PathVariable String keyValue) {
         return ResponseEntity.ok(apiKeyService.getApiKeyByValue(keyValue));
     }
 }
