@@ -9,16 +9,13 @@ public class ApiUsageLogDto {
 
     private Long id;
 
-    @NotNull(message = "apiKeyId is required")
+    @NotNull
     private Long apiKeyId;
 
-    @NotBlank(message = "endpoint is required")
+    @NotBlank
     private String endpoint;
 
-    // optional in request; service can fill current time
     private Instant timestamp;
-
-    public ApiUsageLogDto() {}
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

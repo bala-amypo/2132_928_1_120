@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.ApiKeyDto;
 import com.example.demo.entity.ApiKey;
 import com.example.demo.entity.QuotaPlan;
 import com.example.demo.exception.BadRequestException;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -25,70 +27,79 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
-    public ApiKey createApiKey(ApiKey key) {
-        if (key == null) throw new BadRequestException("ApiKey is required");
+    public ApiKeyDto createApiKey(ApiKeyDto dto) {
 
-        if (key.getKeyValue() == null || key.getKeyValue().trim().isEmpty()) {
+        if (dto.getKeyValue() == null || dto.getKeyValue().trim().isEmpty()) {
             throw new BadRequestException("Key value is required");
         }
-        if (key.getOwnerId() == null) {
+        if (dto.getOwnerId() == null) {
             throw new BadRequestException("OwnerId is required");
         }
-        if (key.getPlan() == null || key.getPlan().getId() == null) {
-            throw new BadRequestException("Plan is required");
+        if (dto.getPlanId() == null) {
+            throw new BadRequestException("PlanId is required");
         }
 
-        apiKeyRepository.findByKeyValue(key.getKeyValue().trim())
+        apiKeyRepository.findByKeyValue(dto.getKeyValue().trim())
                 .ifPresent(x -> { throw new BadRequestException("API Key already exists"); });
 
-        QuotaPlan plan = quotaPlanRepository.findById(key.getPlan().getId())
+        QuotaPlan plan = quotaPlanRepository.findById(dto.getPlanId())
                 .orElseThrow(() -> new ResourceNotFoundException("Quota plan not found"));
 
         if (!plan.isActive()) {
             throw new BadRequestException("Quota plan is inactive");
         }
 
-        key.setKeyValue(key.getKeyValue().trim());
+        ApiKey key = new ApiKey();
+        key.setKeyValue(dto.getKeyValue().trim());
+        key.setOwnerId(dto.getOwnerId());
         key.setPlan(plan);
-        if (key.getActive() == null) key.setActive(true);
+        key.setActive(true);
 
-        return apiKeyRepository.save(key);
+        ApiKey saved = apiKeyRepository.save(key);
+        return toDto(saved);
     }
 
     @Override
-    public ApiKey updateApiKey(Long id, ApiKey input) {
+    public ApiKeyDto updateApiKey(Long id, ApiKeyDto dto) {
+
         ApiKey key = apiKeyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("API Key not found"));
 
         if (!key.isActive()) {
             throw new BadRequestException("Cannot update inactive key");
         }
-        if (input.getOwnerId() == null) {
+        if (dto.getOwnerId() == null) {
             throw new BadRequestException("OwnerId is required");
         }
 
-        key.setOwnerId(input.getOwnerId());
-        return apiKeyRepository.save(key);
+        key.setOwnerId(dto.getOwnerId());
+        ApiKey saved = apiKeyRepository.save(key);
+        return toDto(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ApiKey getApiKeyById(Long id) {
-        return apiKeyRepository.findById(id)
+    public ApiKeyDto getApiKeyById(Long id) {
+        ApiKey key = apiKeyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("API Key not found"));
+        return toDto(key);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ApiKey getApiKeyByValue(String keyValue) {
-        return apiKeyRepository.findByKeyValue(keyValue)
+    public ApiKeyDto getApiKeyByValue(String keyValue) {
+        ApiKey key = apiKeyRepository.findByKeyValue(keyValue)
                 .orElseThrow(() -> new ResourceNotFoundException("API Key not found"));
+        return toDto(key);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ApiKey> getAllApiKeys() {
-        return apiKeyRepository.findAll();
+    public List<ApiKeyDto> getAllApiKeys() {
+        return apiKeyRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -97,5 +108,17 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                 .orElseThrow(() -> new ResourceNotFoundException("API Key not found"));
         key.setActive(false);
         apiKeyRepository.save(key);
+    }
+
+    private ApiKeyDto toDto(ApiKey key) {
+        ApiKeyDto dto = new ApiKeyDto();
+        dto.setId(key.getId());
+        dto.setKeyValue(key.getKeyValue());
+        dto.setOwnerId(key.getOwnerId());
+        dto.setPlanId(key.getPlan().getId());
+        dto.setActive(key.getActive());
+        dto.setCreatedAt(key.getCreatedAt());
+        dto.setUpdatedAt(key.getUpdatedAt());
+        return dto;
     }
 }
