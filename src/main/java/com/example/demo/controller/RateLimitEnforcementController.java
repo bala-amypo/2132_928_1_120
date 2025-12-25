@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.RateLimitEnforcementDto;
+import com.example.demo.entity.RateLimitEnforcement;
 import com.example.demo.service.RateLimitEnforcementService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/enforcements")
+@RequestMapping("/enforcements")
 public class RateLimitEnforcementController {
 
     private final RateLimitEnforcementService enforcementService;
@@ -18,21 +18,18 @@ public class RateLimitEnforcementController {
         this.enforcementService = enforcementService;
     }
 
-    // ✅ replaces createEnforcement(...)
     @PostMapping
-    public ResponseEntity<RateLimitEnforcementDto> create(@Valid @RequestBody RateLimitEnforcementDto dto) {
-        return ResponseEntity.ok(enforcementService.upsertEnforcement(dto));
+    public ResponseEntity<RateLimitEnforcement> create(@Valid @RequestBody RateLimitEnforcement enforcement) {
+        return ResponseEntity.ok(enforcementService.createEnforcement(enforcement));
     }
 
-    // ✅ replaces getEnforcementById(id) (your service is key-based now)
-    // This endpoint fetches by apiKeyId
-    @GetMapping("/by-key/{apiKeyId}")
-    public ResponseEntity<List<RateLimitEnforcementDto>> getByKey(@PathVariable Long apiKeyId) {
+    @GetMapping("/{id}")
+    public ResponseEntity<RateLimitEnforcement> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(enforcementService.getEnforcementById(id));
+    }
+
+    @GetMapping("/key/{apiKeyId}")
+    public ResponseEntity<List<RateLimitEnforcement>> getForKey(@PathVariable Long apiKeyId) {
         return ResponseEntity.ok(enforcementService.getEnforcementsForKey(apiKeyId));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<RateLimitEnforcementDto>> getAll() {
-        return ResponseEntity.ok(enforcementService.getAllEnforcements());
     }
 }
