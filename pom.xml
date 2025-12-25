@@ -29,7 +29,6 @@
   </properties>
 
   <dependencies>
-    <!-- App deps -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -56,7 +55,6 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- JWT -->
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
       <artifactId>jjwt-api</artifactId>
@@ -75,21 +73,18 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- Swagger -->
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
       <version>${springdoc.version}</version>
     </dependency>
 
-    <!-- Model Mapper -->
     <dependency>
       <groupId>org.modelmapper</groupId>
       <artifactId>modelmapper</artifactId>
       <version>3.1.1</version>
     </dependency>
 
-    <!-- Spring Boot Test (JUnit5 + Mockito etc.) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -102,7 +97,6 @@
       </exclusions>
     </dependency>
 
-    <!-- TestNG -->
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
@@ -114,7 +108,7 @@
   <build>
     <plugins>
 
-      <!--  Add external test folder (outside demo) -->
+      <!-- Add ../test_saved/java as test sources -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -128,7 +122,6 @@
             </goals>
             <configuration>
               <sources>
-                <!--  IMPORTANT: test_saved is in /Workspace (one level up from demo) -->
                 <source>${project.basedir}/../test_saved/java</source>
               </sources>
             </configuration>
@@ -136,7 +129,6 @@
         </executions>
       </plugin>
 
-      <!-- Compiler -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -146,27 +138,19 @@
         </configuration>
       </plugin>
 
-      <!--  Surefire runs TestNG using your root testng.xml -->
+      <!-- Run TestNG using your real testng.xml location -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
         <configuration>
           <useModulePath>false</useModulePath>
-
           <suiteXmlFiles>
-            <suiteXmlFile>${project.basedir}/testng.xml</suiteXmlFile>
+            <suiteXmlFile>${project.basedir}/../test_saved/java/com/example/demo/testng.xml</suiteXmlFile>
           </suiteXmlFiles>
-
-          <!-- fallback pattern (optional) -->
-          <includes>
-            <include>**/*Test.java</include>
-            <include>**/*Tests.java</include>
-          </includes>
         </configuration>
       </plugin>
 
-      <!-- Spring Boot -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
