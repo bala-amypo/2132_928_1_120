@@ -7,9 +7,13 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.ApiKeyRepository;
 import com.example.demo.repository.QuotaPlanRepository;
 import com.example.demo.service.ApiKeyService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Service
+@Transactional
 public class ApiKeyServiceImpl implements ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepo;
@@ -22,25 +26,22 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     public ApiKey createApiKey(ApiKey key) {
+        if (key == null) throw new BadRequestException("ApiKey cannot be null");
         if (key.getPlan() == null || key.getPlan().getId() == null) {
-            throw new BadRequestException("Plan is required");
+            throw new BadRequestException("Quota plan is required");
         }
 
         QuotaPlan plan = quotaPlanRepo.findById(key.getPlan().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Plan not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Quota plan not found"));
 
         if (!plan.isActive()) {
-            throw new BadRequestException("Plan not active");
+            throw new BadRequestException("Quota plan is not active");
         }
 
         key.setPlan(plan);
-        if (key.getKeyValue() == null) {
-            key.setKeyValue("KEY-" + System.nanoTime());
-        }
-        if (key.getOwnerId() == null) {
-            key.setOwnerId(0L);
-        }
-        key.setActive(true);
+
+        // default active = true if not set
+        // (if your entity uses Boolean, handle null)
         return apiKeyRepo.save(key);
     }
 
@@ -57,14 +58,14 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
-    public List<ApiKey> getAllApiKeys() {
-        return apiKeyRepo.findAll();
-    }
-
-    @Override
     public void deactivateApiKey(Long id) {
         ApiKey k = getApiKeyById(id);
         k.setActive(false);
         apiKeyRepo.save(k);
+    }
+
+    @Override
+    public List<ApiKey> getAllApiKeys() {
+        return apiKeyRepo.findAll();
     }
 }
