@@ -10,25 +10,20 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Disable CSRF for APIs & tests
             .csrf(csrf -> csrf.disable())
-
-            // Allow these endpoints without auth
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/status",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/swagger-ui.html"
+                    "/status",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    "/swagger-ui.html",
+                    "/error"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
-
-            // Use basic auth (safe default)
-            .httpBasic(Customizer.withDefaults());
+            .httpBasic(Customizer.withDefaults()); // simple default auth, ok for now
 
         return http.build();
     }
