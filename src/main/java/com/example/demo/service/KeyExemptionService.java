@@ -1,11 +1,17 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.KeyExemptionDto;
+
 import java.util.List;
 
 public interface KeyExemptionService {
-    KeyExemptionDto createExemption(KeyExemptionDto dto);
-    KeyExemptionDto updateExemption(Long id, KeyExemptionDto dto);
-    KeyExemptionDto getExemptionByKey(Long apiKeyId);
+
+    // required by your compiler error
     List<KeyExemptionDto> getAllExemptions();
+
+    // per-key fetch
+    List<KeyExemptionDto> getExemptionsForKey(Long apiKeyId);
+
+    // create/update
+    KeyExemptionDto upsertExemption(KeyExemptionDto dto);
 }

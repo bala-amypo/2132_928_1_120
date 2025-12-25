@@ -9,7 +9,8 @@ import com.example.demo.repository.RateLimitEnforcementRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -25,13 +26,22 @@ public class RateLimitEnforcementServiceImpl implements RateLimitEnforcementServ
     }
 
     @Override
-    public Optional<RateLimitEnforcementDto> getByApiKeyId(Long apiKeyId) {
-        // ✅ fixed method name
-        return enforcementRepository.findByApiKey_Id(apiKeyId).map(this::toDto);
+    public List<RateLimitEnforcementDto> getEnforcementsForKey(Long apiKeyId) {
+        return enforcementRepository.findByApiKey_Id(apiKeyId)
+                .map(e -> List.of(toDto(e)))
+                .orElse(List.of());
     }
 
     @Override
-    public RateLimitEnforcementDto upsert(RateLimitEnforcementDto dto) {
+    public List<RateLimitEnforcementDto> getAllEnforcements() {
+        return enforcementRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public RateLimitEnforcementDto upsertEnforcement(RateLimitEnforcementDto dto) {
         ApiKey apiKey = apiKeyRepository.findById(dto.getApiKeyId())
                 .orElseThrow(() -> new ResourceNotFoundException("API key not found: " + dto.getApiKeyId()));
 

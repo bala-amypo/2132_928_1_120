@@ -26,8 +26,15 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
     }
 
     @Override
-    public List<KeyExemptionDto> getByApiKeyId(Long apiKeyId) {
-        // ✅ fixed method name
+    public List<KeyExemptionDto> getAllExemptions() {
+        return exemptionRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<KeyExemptionDto> getExemptionsForKey(Long apiKeyId) {
         return exemptionRepository.findByApiKey_Id(apiKeyId)
                 .stream()
                 .map(this::toDto)
@@ -35,12 +42,13 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
     }
 
     @Override
-    public KeyExemptionDto upsert(KeyExemptionDto dto) {
+    public KeyExemptionDto upsertExemption(KeyExemptionDto dto) {
         ApiKey apiKey = apiKeyRepository.findById(dto.getApiKeyId())
                 .orElseThrow(() -> new ResourceNotFoundException("API key not found: " + dto.getApiKeyId()));
 
-        // one record per key – simple approach: delete old and insert new
-        exemptionRepository.findByApiKey_Id(dto.getApiKeyId()).forEach(exemptionRepository::delete);
+        // one record per apiKey: overwrite existing
+        exemptionRepository.findByApiKey_Id(dto.getApiKeyId())
+                .forEach(exemptionRepository::delete);
 
         KeyExemption e = new KeyExemption();
         e.setApiKey(apiKey);
