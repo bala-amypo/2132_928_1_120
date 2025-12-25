@@ -93,7 +93,7 @@
       <version>3.1.1</version>
     </dependency>
 
-    <!-- Spring Boot Test -->
+    <!-- Spring Boot Test (JUnit 5 included) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -113,11 +113,12 @@
       <version>${testng.version}</version>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
 
   <build>
 
-    <!-- ✅ Your tests are in test_saved/java -->
+    <!-- tests are here -->
     <testSourceDirectory>${project.basedir}/test_saved/java</testSourceDirectory>
 
     <plugins>
@@ -131,7 +132,7 @@
         </configuration>
       </plugin>
 
-      <!-- ✅ Surefire: run TestNG using ROOT testng.xml -->
+      <!-- ✅ Surefire runs BOTH JUnit5 + TestNG -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -139,20 +140,17 @@
         <configuration>
           <useModulePath>false</useModulePath>
 
-          <!-- ✅ testng.xml is in root (same as pom.xml) -->
+          <!-- Your testng.xml is in project root (same level as pom.xml) -->
           <suiteXmlFiles>
             <suiteXmlFile>${project.basedir}/testng.xml</suiteXmlFile>
           </suiteXmlFiles>
-        </configuration>
 
-        <!-- forces TestNG provider -->
-        <dependencies>
-          <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
-          </dependency>
-        </dependencies>
+          <!-- fallback if suite is ignored -->
+          <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+          </includes>
+        </configuration>
       </plugin>
 
       <plugin>
