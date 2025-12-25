@@ -114,7 +114,7 @@
   <build>
     <plugins>
 
-      <!-- ✅ ADD test_saved/java as test source folder (THIS is the fix) -->
+      <!-- ✅ Add external test folder (outside demo) -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -128,7 +128,8 @@
             </goals>
             <configuration>
               <sources>
-                <source>${project.basedir}/test_saved/java</source>
+                <!-- 👇 IMPORTANT: test_saved is in /Workspace (one level up from demo) -->
+                <source>${project.basedir}/../test_saved/java</source>
               </sources>
             </configuration>
           </execution>
@@ -157,7 +158,7 @@
             <suiteXmlFile>${project.basedir}/testng.xml</suiteXmlFile>
           </suiteXmlFiles>
 
-          <!-- fallback pattern -->
+          <!-- fallback pattern (optional) -->
           <includes>
             <include>**/*Test.java</include>
             <include>**/*Tests.java</include>
