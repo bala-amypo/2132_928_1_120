@@ -13,12 +13,5 @@ public class DemoApplication {
         SpringApplication.run(DemoApplication.class, args);
     }
 
-    // 🔴 TEMPORARY – remove after generating password
-    @Bean
-    CommandLineRunner passwordGenerator() {
-        return args -> {
-            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-            System.out.println("HASH = " + encoder.encode("welcome123"));
-        };
-    }
+    
 }
