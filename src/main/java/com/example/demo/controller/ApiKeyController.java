@@ -1,9 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ApiKeyDto;
-import com.example.demo.mapper.DtoMapper;
-import com.example.demo.repository.ApiKeyRepository;
-import com.example.demo.entity.ApiKey;
+import com.example.demo.service.ApiKeyService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,26 +12,30 @@ import java.util.List;
 @RequestMapping("/api/keys")
 public class ApiKeyController {
 
-    private final ApiKeyRepository apiKeyRepository;
+    private final ApiKeyService apiKeyService;
 
-    public ApiKeyController(ApiKeyRepository apiKeyRepository) {
-        this.apiKeyRepository = apiKeyRepository;
+    public ApiKeyController(ApiKeyService apiKeyService) {
+        this.apiKeyService = apiKeyService;
     }
 
     @PostMapping
     public ResponseEntity<ApiKeyDto> create(@Valid @RequestBody ApiKeyDto dto) {
-        ApiKey saved = apiKeyRepository.save(DtoMapper.toEntity(dto));
-        return ResponseEntity.ok(DtoMapper.toDto(saved));
+        return ResponseEntity.ok(apiKeyService.createApiKey(dto));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiKeyDto> get(@PathVariable Long id) {
-        ApiKey e = apiKeyRepository.findById(id).orElseThrow();
-        return ResponseEntity.ok(DtoMapper.toDto(e));
+        return ResponseEntity.ok(apiKeyService.getApiKey(id));
     }
 
     @GetMapping
     public ResponseEntity<List<ApiKeyDto>> getAll() {
-        return ResponseEntity.ok(DtoMapper.toApiKeyDtos(apiKeyRepository.findAll()));
+        return ResponseEntity.ok(apiKeyService.getAllApiKeys());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        apiKeyService.deleteApiKey(id);
+        return ResponseEntity.noContent().build();
     }
 }

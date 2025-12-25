@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface RateLimitEnforcementRepository extends JpaRepository<RateLimitEnforcement, Long> {
     Optional<RateLimitEnforcement> findByApiKeyId(Long apiKeyId);
+    java.util.Optional<com.example.demo.entity.RateLimitEnforcement> findByApiKey_Id(long apiKeyId);
 }
