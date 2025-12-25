@@ -1,15 +1,11 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.RateLimitEnforcementDto;
+import com.example.demo.entity.RateLimitEnforcement;
 
 import java.util.List;
 
 public interface RateLimitEnforcementService {
-
-    // required by your compiler error
-    List<RateLimitEnforcementDto> getEnforcementsForKey(Long apiKeyId);
-
-    List<RateLimitEnforcementDto> getAllEnforcements();
-
-    RateLimitEnforcementDto upsertEnforcement(RateLimitEnforcementDto dto);
+    RateLimitEnforcement createEnforcement(RateLimitEnforcement e);
+    List<RateLimitEnforcement> getEnforcementsForKey(Long apiKeyId);
+    RateLimitEnforcement getEnforcementById(Long id);
 }
