@@ -7,10 +7,16 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.ApiKeyRepository;
 import com.example.demo.repository.ApiUsageLogRepository;
 import com.example.demo.service.ApiUsageLogService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
+@Service
+@Transactional
 public class ApiUsageLogServiceImpl implements ApiUsageLogService {
 
     private final ApiUsageLogRepository usageRepo;
@@ -23,37 +29,37 @@ public class ApiUsageLogServiceImpl implements ApiUsageLogService {
 
     @Override
     public ApiUsageLog logUsage(ApiUsageLog log) {
+        if (log == null) throw new BadRequestException("Usage log cannot be null");
         if (log.getApiKey() == null || log.getApiKey().getId() == null) {
-            throw new BadRequestException("ApiKey required");
+            throw new BadRequestException("ApiKey is required");
         }
-        ApiKey k = apiKeyRepo.findById(log.getApiKey().getId())
+
+        ApiKey key = apiKeyRepo.findById(log.getApiKey().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found"));
 
-        if (log.getTimestamp() == null) {
-            log.setTimestamp(Instant.now());
-        }
-        if (log.getTimestamp().isAfter(Instant.now().plusSeconds(1))) {
-            // test expects future timestamp fails
-            throw new BadRequestException("Future timestamp not allowed");
+        Instant ts = log.getTimestamp() == null ? Instant.now() : log.getTimestamp();
+        if (ts.isAfter(Instant.now().plusSeconds(1))) {
+            throw new BadRequestException("Timestamp cannot be in the future");
         }
 
-        log.setApiKey(k);
-        if (log.getEndpoint() == null) log.setEndpoint("/unknown");
+        log.setApiKey(key);
+        log.setTimestamp(ts);
+
         return usageRepo.save(log);
     }
 
     @Override
     public List<ApiUsageLog> getUsageForToday(Long apiKeyId) {
-        Instant from = LocalDate.now(ZoneOffset.UTC).atStartOfDay().toInstant(ZoneOffset.UTC);
-        Instant to = from.plus(Duration.ofDays(1)).minusMillis(1);
-        return usageRepo.findForKeyBetween(apiKeyId, from, to);
+        Instant start = LocalDate.now(ZoneOffset.UTC).atStartOfDay().toInstant(ZoneOffset.UTC);
+        Instant end = start.plusSeconds(24 * 60 * 60);
+        return usageRepo.findForKeyBetween(apiKeyId, start, end);
     }
 
     @Override
     public int countRequestsToday(Long apiKeyId) {
-        Instant from = LocalDate.now(ZoneOffset.UTC).atStartOfDay().toInstant(ZoneOffset.UTC);
-        Instant to = from.plus(Duration.ofDays(1)).minusMillis(1);
-        return usageRepo.countForKeyBetween(apiKeyId, from, to);
+        Instant start = LocalDate.now(ZoneOffset.UTC).atStartOfDay().toInstant(ZoneOffset.UTC);
+        Instant end = start.plusSeconds(24 * 60 * 60);
+        return usageRepo.countForKeyBetween(apiKeyId, start, end);
     }
 
     @Override
