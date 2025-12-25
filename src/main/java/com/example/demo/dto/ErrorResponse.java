@@ -12,6 +12,12 @@ public class ErrorResponse {
 
     public ErrorResponse() {}
 
+    // ✅ this matches GlobalExceptionHandler calling (String, String)
+    public ErrorResponse(String error, String message) {
+        this.error = error;
+        this.message = message;
+    }
+
     public ErrorResponse(int status, String error, String message, String path) {
         this.timestamp = Instant.now();
         this.status = status;
