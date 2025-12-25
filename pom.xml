@@ -114,7 +114,7 @@
   <build>
     <plugins>
 
-      <!-- ✅ Add external test folder (outside demo) -->
+      <!--  Add external test folder (outside demo) -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -128,7 +128,7 @@
             </goals>
             <configuration>
               <sources>
-                <!-- 👇 IMPORTANT: test_saved is in /Workspace (one level up from demo) -->
+                <!--  IMPORTANT: test_saved is in /Workspace (one level up from demo) -->
                 <source>${project.basedir}/../test_saved/java</source>
               </sources>
             </configuration>
@@ -146,7 +146,7 @@
         </configuration>
       </plugin>
 
-      <!-- ✅ Surefire runs TestNG using your root testng.xml -->
+      <!--  Surefire runs TestNG using your root testng.xml -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
