@@ -1,137 +1,150 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.*;
-import org.springframework.stereotype.Service;
+import com.example.demo.entity.*;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.repository.*;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ApiRateLimiterQuotaManager {
 
-    private final QuotaPlanService quotaPlanService;
-    private final ApiKeyService apiKeyService;
-    private final ApiUsageLogService apiUsageLogService;
-    private final RateLimitEnforcementService rateLimitEnforcementService;
-    private final KeyExemptionService keyExemptionService;
-    private final AuthService authService;
+    private final QuotaPlanRepository quotaPlanRepository;
+    private final ApiKeyRepository apiKeyRepository;
+    private final ApiUsageLogRepository apiUsageLogRepository;
+    private final RateLimitEnforcementRepository enforcementRepository;
+    private final KeyExemptionRepository exemptionRepository;
 
-    public ApiRateLimiterQuotaManager(QuotaPlanService quotaPlanService,
-                                      ApiKeyService apiKeyService,
-                                      ApiUsageLogService apiUsageLogService,
-                                      RateLimitEnforcementService rateLimitEnforcementService,
-                                      KeyExemptionService keyExemptionService,
-                                      AuthService authService) {
-        this.quotaPlanService = quotaPlanService;
-        this.apiKeyService = apiKeyService;
-        this.apiUsageLogService = apiUsageLogService;
-        this.rateLimitEnforcementService = rateLimitEnforcementService;
-        this.keyExemptionService = keyExemptionService;
-        this.authService = authService;
+    public ApiRateLimiterQuotaManager(QuotaPlanRepository quotaPlanRepository,
+                                     ApiKeyRepository apiKeyRepository,
+                                     ApiUsageLogRepository apiUsageLogRepository,
+                                     RateLimitEnforcementRepository enforcementRepository,
+                                     KeyExemptionRepository exemptionRepository) {
+        this.quotaPlanRepository = quotaPlanRepository;
+        this.apiKeyRepository = apiKeyRepository;
+        this.apiUsageLogRepository = apiUsageLogRepository;
+        this.enforcementRepository = enforcementRepository;
+        this.exemptionRepository = exemptionRepository;
     }
 
-    // ======================
-    // USER
-    // ======================
-    public RegisterResponseDto register(RegisterRequestDto request) {
-        return authService.register(request);
+    // -----------------------------
+    // QUOTA PLAN (DTO edge)
+    // -----------------------------
+    public QuotaPlanDto createPlan(QuotaPlanDto dto) {
+        QuotaPlan p = new QuotaPlan();
+        p.setPlanName(dto.getPlanName());
+        p.setDailyLimit(dto.getDailyLimit());
+        p.setDescription(dto.getDescription());
+        p.setActive(dto.getActive() == null ? true : dto.getActive());
+        return toDto(quotaPlanRepository.save(p));
     }
 
-    public AuthResponseDto login(AuthRequestDto request) {
-        return authService.login(request);
+    public QuotaPlanDto getPlan(Long id) {
+        return toDto(quotaPlanRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Quota plan not found")));
     }
 
-    // ======================
-    // QUOTA PLAN (DTO)
-    // ======================
-    public QuotaPlanDto createQuotaPlan(QuotaPlanDto dto) {
-        return quotaPlanService.createQuotaPlan(dto);
+    // -----------------------------
+    // API KEY (DTO edge)
+    // -----------------------------
+    public ApiKeyDto createKey(ApiKeyDto dto) {
+        QuotaPlan plan = quotaPlanRepository.findById(dto.getPlanId())
+                .orElseThrow(() -> new ResourceNotFoundException("Quota plan not found"));
+
+        ApiKey k = new ApiKey();
+        k.setKeyValue(dto.getKeyValue());
+        k.setOwnerId(dto.getOwnerId());
+        k.setPlan(plan);
+        k.setActive(dto.getActive() == null ? true : dto.getActive());
+        ApiKey saved = apiKeyRepository.save(k);
+        return toDto(saved);
     }
 
-    public QuotaPlanDto updateQuotaPlan(Long id, QuotaPlanDto dto) {
-        return quotaPlanService.updateQuotaPlan(id, dto);
+    public ApiKeyDto getKey(Long id) {
+        return toDto(apiKeyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("API Key not found")));
     }
 
-    public QuotaPlanDto getQuotaPlan(Long id) {
-        return quotaPlanService.getQuotaPlanById(id);
+    public List<ApiKeyDto> getAllKeys() {
+        return apiKeyRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    public List<QuotaPlanDto> getAllPlans() {
-        return quotaPlanService.getAllPlans();
-    }
-
-    public void deactivateQuotaPlan(Long id) {
-        quotaPlanService.deactivateQuotaPlan(id);
-    }
-
-    // ======================
-    // API KEY (DTO)
-    // ======================
-    public ApiKeyDto createApiKey(ApiKeyDto dto) {
-        return apiKeyService.createApiKey(dto);
-    }
-
-    public ApiKeyDto updateApiKey(Long id, ApiKeyDto dto) {
-        return apiKeyService.updateApiKey(id, dto);
-    }
-
-    public ApiKeyDto getApiKey(Long id) {
-        return apiKeyService.getApiKeyById(id);
-    }
-
-    public List<ApiKeyDto> getAllApiKeys() {
-        return apiKeyService.getAllApiKeys();
-    }
-
-    public void deactivateApiKey(Long id) {
-        apiKeyService.deactivateApiKey(id);
-    }
-
-    // ======================
-    // USAGE LOG (DTO)
-    // ======================
+    // -----------------------------
+    // USAGE LOG (DTO edge)
+    // -----------------------------
     public ApiUsageLogDto logUsage(ApiUsageLogDto dto) {
-        return apiUsageLogService.logUsage(dto);
+        ApiKey key = apiKeyRepository.findById(dto.getApiKeyId())
+                .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found"));
+
+        ApiUsageLog log = new ApiUsageLog();
+        log.setApiKey(key);
+        log.setEndpoint(dto.getEndpoint());
+        log.setTimestamp(dto.getTimestamp() == null ? Instant.now() : dto.getTimestamp());
+
+        return toDto(apiUsageLogRepository.save(log));
     }
 
-    public List<ApiUsageLogDto> usageForKey(Long keyId) {
-        return apiUsageLogService.getUsageForApiKey(keyId);
+    public List<ApiUsageLog> usageEntities(long apiKeyId) {
+        // ✅ tests call repo.findByApiKey_Id, so expose entities too if they use it
+        return apiUsageLogRepository.findByApiKey_Id(apiKeyId);
     }
 
-    public int countRequestsToday(Long keyId) {
-        return apiUsageLogService.countRequestsToday(keyId);
+    public List<ApiUsageLogDto> usageDtos(long apiKeyId) {
+        return apiUsageLogRepository.findByApiKey_Id(apiKeyId)
+                .stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    // ======================
-    // ENFORCEMENT (DTO)
-    // ======================
-    public RateLimitEnforcementDto enforce(RateLimitEnforcementDto dto) {
-        return rateLimitEnforcementService.createEnforcement(dto);
+    // -----------------------------
+    // ENFORCEMENT / EXEMPTION
+    // -----------------------------
+    public List<RateLimitEnforcement> enforcementEntities(long apiKeyId) {
+        return enforcementRepository.findByApiKey_Id(apiKeyId);
     }
 
-    public RateLimitEnforcementDto getEnforcement(Long id) {
-        return rateLimitEnforcementService.getEnforcementById(id);
+    public List<KeyExemption> exemptionEntities(long apiKeyId) {
+        return exemptionRepository.findByApiKey_Id(apiKeyId)
+                .map(List::of)
+                .orElse(List.of());
     }
 
-    public List<RateLimitEnforcementDto> getEnforcementsForKey(Long apiKeyId) {
-        return rateLimitEnforcementService.getEnforcementsForKey(apiKeyId);
+    // -----------------------------
+    // MAPPERS
+    // -----------------------------
+    private QuotaPlanDto toDto(QuotaPlan p) {
+        QuotaPlanDto dto = new QuotaPlanDto();
+        dto.setId(p.getId());
+        dto.setPlanName(p.getPlanName());
+        dto.setDailyLimit(p.getDailyLimit());
+        dto.setDescription(p.getDescription());
+        dto.setActive(p.getActive());
+        return dto;
     }
 
-    // ======================
-    // EXEMPTIONS (DTO)
-    // ======================
-    public KeyExemptionDto createExemption(KeyExemptionDto dto) {
-        return keyExemptionService.createExemption(dto);
+    private ApiKeyDto toDto(ApiKey k) {
+        ApiKeyDto dto = new ApiKeyDto();
+        dto.setId(k.getId());
+        dto.setKeyValue(k.getKeyValue());
+        dto.setOwnerId(k.getOwnerId());
+        dto.setPlanId(k.getPlan().getId());
+        dto.setActive(k.getActive());
+        dto.setCreatedAt(k.getCreatedAt());
+        dto.setUpdatedAt(k.getUpdatedAt());
+        return dto;
     }
 
-    public KeyExemptionDto updateExemption(Long id, KeyExemptionDto dto) {
-        return keyExemptionService.updateExemption(id, dto);
-    }
-
-    public KeyExemptionDto getExemptionByKey(Long apiKeyId) {
-        return keyExemptionService.getExemptionByKey(apiKeyId);
-    }
-
-    public List<KeyExemptionDto> getAllExemptions() {
-        return keyExemptionService.getAllExemptions();
+    private ApiUsageLogDto toDto(ApiUsageLog l) {
+        ApiUsageLogDto dto = new ApiUsageLogDto();
+        dto.setId(l.getId());
+        dto.setApiKeyId(l.getApiKey().getId());
+        dto.setEndpoint(l.getEndpoint());
+        dto.setTimestamp(l.getTimestamp());
+        return dto;
     }
 }
