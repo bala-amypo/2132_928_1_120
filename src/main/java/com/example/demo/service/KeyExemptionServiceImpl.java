@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.KeyExemptionDto;
 import com.example.demo.entity.ApiKey;
 import com.example.demo.entity.KeyExemption;
 import com.example.demo.exception.BadRequestException;
@@ -12,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -28,87 +26,63 @@ public class KeyExemptionServiceImpl implements KeyExemptionService {
     }
 
     @Override
-    public KeyExemptionDto createExemption(KeyExemptionDto dto) {
+    public KeyExemption createExemption(KeyExemption exemption) {
+        if (exemption == null) throw new BadRequestException("Exemption is required");
+        if (exemption.getApiKey() == null || exemption.getApiKey().getId() == null) {
+            throw new BadRequestException("ApiKey is required");
+        }
 
-        ApiKey apiKey = apiKeyRepository.findById(dto.getApiKeyId())
+        ApiKey apiKey = apiKeyRepository.findById(exemption.getApiKey().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found"));
 
-        if (!Boolean.TRUE.equals(apiKey.getActive())) {
-            throw new BadRequestException("ApiKey is inactive");
-        }
+        if (!apiKey.isActive()) throw new BadRequestException("ApiKey is inactive");
 
-        validateExemption(dto);
+        validate(exemption);
 
-        KeyExemption exemption = new KeyExemption();
         exemption.setApiKey(apiKey);
-        exemption.setNotes(dto.getNotes());
-        exemption.setUnlimitedAccess(dto.getUnlimitedAccess() != null && dto.getUnlimitedAccess());
-        exemption.setTemporaryExtensionLimit(dto.getTemporaryExtensionLimit());
-        exemption.setValidUntil(dto.getValidUntil());
-
-        return toDto(exemptionRepository.save(exemption));
+        return exemptionRepository.save(exemption);
     }
 
     @Override
-    public KeyExemptionDto updateExemption(Long id, KeyExemptionDto dto) {
-
-        KeyExemption exemption = exemptionRepository.findById(id)
+    public KeyExemption updateExemption(Long id, KeyExemption input) {
+        KeyExemption ex = exemptionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Exemption not found"));
 
-        validateExemption(dto);
+        validate(input);
 
-        exemption.setNotes(dto.getNotes());
-        exemption.setUnlimitedAccess(dto.getUnlimitedAccess());
-        exemption.setTemporaryExtensionLimit(dto.getTemporaryExtensionLimit());
-        exemption.setValidUntil(dto.getValidUntil());
+        ex.setNotes(input.getNotes());
+        ex.setUnlimitedAccess(input.getUnlimitedAccess());
+        ex.setTemporaryExtensionLimit(input.getTemporaryExtensionLimit());
+        ex.setValidUntil(input.getValidUntil());
 
-        return toDto(exemptionRepository.save(exemption));
+        return exemptionRepository.save(ex);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public KeyExemptionDto getExemptionByKey(Long apiKeyId) {
-
-        KeyExemption exemption = exemptionRepository.findByApiKeyId(apiKeyId)
+    public KeyExemption getExemptionByKey(Long apiKeyId) {
+        return exemptionRepository.findByApiKeyId(apiKeyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Exemption not found"));
-
-        return toDto(exemption);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<KeyExemptionDto> getAllExemptions() {
-
-        return exemptionRepository.findAll()
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public List<KeyExemption> getAllExemptions() {
+        return exemptionRepository.findAll();
     }
 
-    private void validateExemption(KeyExemptionDto dto) {
+    private void validate(KeyExemption ex) {
+        Boolean unlimited = ex.getUnlimitedAccess() != null && ex.getUnlimitedAccess();
+        Integer temp = ex.getTemporaryExtensionLimit();
 
-        if (dto.getUnlimitedAccess() != null && dto.getUnlimitedAccess()
-                && dto.getTemporaryExtensionLimit() != null) {
+        if (unlimited && temp != null) {
             throw new BadRequestException("Cannot have both unlimited and temporary extension");
         }
-
-        if (dto.getTemporaryExtensionLimit() != null && dto.getTemporaryExtensionLimit() < 0) {
+        if (temp != null && temp < 0) {
             throw new BadRequestException("Temporary extension must be >= 0");
         }
-
-        if (dto.getValidUntil() == null || dto.getValidUntil().isBefore(Instant.now())) {
+        if (ex.getValidUntil() == null || ex.getValidUntil().isBefore(Instant.now())) {
             throw new BadRequestException("validUntil must be in the future");
         }
-    }
-
-    private KeyExemptionDto toDto(KeyExemption e) {
-        KeyExemptionDto dto = new KeyExemptionDto();
-        dto.setId(e.getId());
-        dto.setApiKeyId(e.getApiKey().getId());
-        dto.setNotes(e.getNotes());
-        dto.setUnlimitedAccess(e.getUnlimitedAccess());
-        dto.setTemporaryExtensionLimit(e.getTemporaryExtensionLimit());
-        dto.setValidUntil(e.getValidUntil());
-        return dto;
     }
 }

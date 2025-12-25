@@ -25,52 +25,49 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
-    public ApiKey createApiKey(ApiKey apiKey) {
+    public ApiKey createApiKey(ApiKey key) {
+        if (key == null) throw new BadRequestException("ApiKey is required");
 
-        if (apiKey.getKeyValue() == null || apiKey.getKeyValue().trim().isEmpty()) {
+        if (key.getKeyValue() == null || key.getKeyValue().trim().isEmpty()) {
             throw new BadRequestException("Key value is required");
         }
-        if (apiKey.getOwnerId() == null) {
+        if (key.getOwnerId() == null) {
             throw new BadRequestException("OwnerId is required");
         }
-        if (apiKey.getPlan() == null || apiKey.getPlan().getId() == null) {
-            throw new BadRequestException("PlanId is required");
+        if (key.getPlan() == null || key.getPlan().getId() == null) {
+            throw new BadRequestException("Plan is required");
         }
 
-        apiKeyRepository.findByKeyValue(apiKey.getKeyValue().trim()).ifPresent(x -> {
-            throw new BadRequestException("API Key already exists");
-        });
+        apiKeyRepository.findByKeyValue(key.getKeyValue().trim())
+                .ifPresent(x -> { throw new BadRequestException("API Key already exists"); });
 
-        QuotaPlan plan = quotaPlanRepository.findById(apiKey.getPlan().getId())
+        QuotaPlan plan = quotaPlanRepository.findById(key.getPlan().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Quota plan not found"));
 
         if (!plan.isActive()) {
             throw new BadRequestException("Quota plan is inactive");
         }
 
-        apiKey.setKeyValue(apiKey.getKeyValue().trim());
-        apiKey.setPlan(plan);
+        key.setKeyValue(key.getKeyValue().trim());
+        key.setPlan(plan);
+        if (key.getActive() == null) key.setActive(true);
 
-        if (apiKey.getActive() == null) apiKey.setActive(true);
-
-        return apiKeyRepository.save(apiKey);
+        return apiKeyRepository.save(key);
     }
 
     @Override
-    public ApiKey updateApiKey(Long id, ApiKey incoming) {
-
+    public ApiKey updateApiKey(Long id, ApiKey input) {
         ApiKey key = apiKeyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("API Key not found"));
 
         if (!key.isActive()) {
             throw new BadRequestException("Cannot update inactive key");
         }
-
-        if (incoming.getOwnerId() == null) {
+        if (input.getOwnerId() == null) {
             throw new BadRequestException("OwnerId is required");
         }
 
-        key.setOwnerId(incoming.getOwnerId());
+        key.setOwnerId(input.getOwnerId());
         return apiKeyRepository.save(key);
     }
 

@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.ApiUsageLogDto;
 import com.example.demo.entity.ApiKey;
 import com.example.demo.entity.ApiUsageLog;
 import com.example.demo.exception.BadRequestException;
@@ -14,7 +13,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -30,59 +28,53 @@ public class ApiUsageLogServiceImpl implements ApiUsageLogService {
     }
 
     @Override
-    public ApiUsageLogDto logUsage(ApiUsageLogDto dto) {
-
-        if (dto.getTimestamp() != null && dto.getTimestamp().isAfter(Instant.now())) {
+    public ApiUsageLog logUsage(ApiUsageLog log) {
+        if (log == null) throw new BadRequestException("Log is required");
+        if (log.getEndpoint() == null || log.getEndpoint().trim().isEmpty()) {
+            throw new BadRequestException("Endpoint is required");
+        }
+        if (log.getApiKey() == null || log.getApiKey().getId() == null) {
+            throw new BadRequestException("ApiKey is required");
+        }
+        if (log.getTimestamp() != null && log.getTimestamp().isAfter(Instant.now())) {
             throw new BadRequestException("timestamp cannot be in the future");
         }
 
-        ApiKey apiKey = apiKeyRepository.findById(dto.getApiKeyId())
+        ApiKey apiKey = apiKeyRepository.findById(log.getApiKey().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("ApiKey not found"));
 
-        if (!Boolean.TRUE.equals(apiKey.getActive())) {
+        if (!apiKey.isActive()) {
             throw new BadRequestException("ApiKey is inactive");
         }
 
-        ApiUsageLog log = new ApiUsageLog();
         log.setApiKey(apiKey);
-        log.setEndpoint(dto.getEndpoint());
-        log.setTimestamp(dto.getTimestamp() != null ? dto.getTimestamp() : Instant.now());
+        log.setEndpoint(log.getEndpoint().trim());
+        if (log.getTimestamp() == null) log.setTimestamp(Instant.now());
 
-        ApiUsageLog saved = apiUsageLogRepository.save(log);
-
-        return toDto(saved);
+        return apiUsageLogRepository.save(log);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ApiUsageLogDto> getUsageForApiKey(Long keyId) {
-
-        return apiUsageLogRepository.findByApiKeyId(keyId)
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public List<ApiUsageLog> getUsageForApiKey(Long keyId) {
+        return apiUsageLogRepository.findByApiKeyId(keyId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ApiUsageLogDto> getUsageForToday(Long keyId) {
-
+    public List<ApiUsageLog> getUsageForToday(Long keyId) {
         ZoneId zoneId = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zoneId);
 
         Instant start = today.atStartOfDay(zoneId).toInstant();
         Instant end = today.plusDays(1).atStartOfDay(zoneId).toInstant();
 
-        return apiUsageLogRepository.findForKeyBetween(keyId, start, end)
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        return apiUsageLogRepository.findForKeyBetween(keyId, start, end);
     }
 
     @Override
     @Transactional(readOnly = true)
     public int countRequestsToday(Long keyId) {
-
         ZoneId zoneId = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zoneId);
 
@@ -90,14 +82,5 @@ public class ApiUsageLogServiceImpl implements ApiUsageLogService {
         Instant end = today.plusDays(1).atStartOfDay(zoneId).toInstant();
 
         return apiUsageLogRepository.countForKeyBetween(keyId, start, end);
-    }
-
-    private ApiUsageLogDto toDto(ApiUsageLog log) {
-        ApiUsageLogDto dto = new ApiUsageLogDto();
-        dto.setId(log.getId());
-        dto.setApiKeyId(log.getApiKey() != null ? log.getApiKey().getId() : null);
-        dto.setEndpoint(log.getEndpoint());
-        dto.setTimestamp(log.getTimestamp());
-        return dto;
     }
 }

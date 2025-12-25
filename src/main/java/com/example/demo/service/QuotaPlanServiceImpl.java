@@ -21,41 +21,41 @@ public class QuotaPlanServiceImpl implements QuotaPlanService {
 
     @Override
     public QuotaPlan createQuotaPlan(QuotaPlan plan) {
-
+        if (plan == null) throw new BadRequestException("Plan is required");
         if (plan.getDailyLimit() == null || plan.getDailyLimit() <= 0) {
             throw new BadRequestException("Daily limit must be > 0");
         }
+        if (plan.getPlanName() == null || plan.getPlanName().trim().isEmpty()) {
+            throw new BadRequestException("Plan name is required");
+        }
 
-        quotaPlanRepository.findByPlanName(plan.getPlanName())
+        quotaPlanRepository.findByPlanName(plan.getPlanName().trim())
                 .ifPresent(x -> { throw new BadRequestException("Plan name already exists"); });
 
+        plan.setPlanName(plan.getPlanName().trim());
         if (plan.getActive() == null) plan.setActive(true);
 
         return quotaPlanRepository.save(plan);
     }
 
     @Override
-    public QuotaPlan updateQuotaPlan(Long id, QuotaPlan incoming) {
-
+    public QuotaPlan updateQuotaPlan(Long id, QuotaPlan input) {
         QuotaPlan plan = quotaPlanRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Quota plan not found"));
 
-        if (incoming.getDailyLimit() == null || incoming.getDailyLimit() <= 0) {
+        if (input.getDailyLimit() == null || input.getDailyLimit() <= 0) {
             throw new BadRequestException("Daily limit must be > 0");
         }
 
-        if (incoming.getPlanName() != null && !incoming.getPlanName().equalsIgnoreCase(plan.getPlanName())) {
-            quotaPlanRepository.findByPlanName(incoming.getPlanName())
+        if (input.getPlanName() != null && !input.getPlanName().equalsIgnoreCase(plan.getPlanName())) {
+            quotaPlanRepository.findByPlanName(input.getPlanName().trim())
                     .ifPresent(x -> { throw new BadRequestException("Plan name already exists"); });
-            plan.setPlanName(incoming.getPlanName());
+            plan.setPlanName(input.getPlanName().trim());
         }
 
-        plan.setDailyLimit(incoming.getDailyLimit());
-        plan.setDescription(incoming.getDescription());
-
-        if (incoming.getActive() != null) {
-            plan.setActive(incoming.getActive());
-        }
+        plan.setDailyLimit(input.getDailyLimit());
+        plan.setDescription(input.getDescription());
+        if (input.getActive() != null) plan.setActive(input.getActive());
 
         return quotaPlanRepository.save(plan);
     }
