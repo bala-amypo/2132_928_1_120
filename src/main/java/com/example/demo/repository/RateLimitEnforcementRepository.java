@@ -7,9 +7,9 @@ import java.util.List;
 
 public interface RateLimitEnforcementRepository extends JpaRepository<RateLimitEnforcement, Long> {
 
-    // ✅ test expects this exact method name
+    // ✅ tests expect this exact derived name
     List<RateLimitEnforcement> findByApiKey_Id(long apiKeyId);
 
-    // (optional, keep if you already use)
+    // keep your existing one too (service uses it)
     List<RateLimitEnforcement> findByApiKeyId(Long apiKeyId);
 }

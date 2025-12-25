@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface QuotaPlanRepository extends JpaRepository<QuotaPlan, Long> {
     Optional<QuotaPlan> findByPlanName(String planName);
+    boolean existsByPlanNameIgnoreCase(String planName);
 }

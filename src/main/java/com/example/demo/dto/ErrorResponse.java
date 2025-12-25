@@ -3,31 +3,26 @@ package com.example.demo.dto;
 import java.time.Instant;
 
 public class ErrorResponse {
-
-    private Instant timestamp = Instant.now();
     private int status;
     private String error;
     private String message;
-    private String path;
+    private String timestamp;
 
-    public ErrorResponse() {}
+    public ErrorResponse() { }
 
-    // ✅ this matches GlobalExceptionHandler calling (String, String)
     public ErrorResponse(String error, String message) {
+        this.status = 400;
         this.error = error;
         this.message = message;
+        this.timestamp = Instant.now().toString();
     }
 
-    public ErrorResponse(int status, String error, String message, String path) {
-        this.timestamp = Instant.now();
+    public ErrorResponse(int status, String error, String message, String timestamp) {
         this.status = status;
         this.error = error;
         this.message = message;
-        this.path = path;
+        this.timestamp = timestamp;
     }
-
-    public Instant getTimestamp() { return timestamp; }
-    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
 
     public int getStatus() { return status; }
     public void setStatus(int status) { this.status = status; }
@@ -38,6 +33,6 @@ public class ErrorResponse {
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
 
-    public String getPath() { return path; }
-    public void setPath(String path) { this.path = path; }
+    public String getTimestamp() { return timestamp; }
+    public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
 }
