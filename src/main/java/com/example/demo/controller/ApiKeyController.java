@@ -1,7 +1,8 @@
 package com.example.demo.controller;
 
-import com.example.demo.entity.ApiKey;
+import com.example.demo.dto.ApiKeyDto;
 import com.example.demo.service.ApiKeyService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,22 +20,24 @@ public class ApiKeyController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiKey> create(@RequestBody ApiKey key) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(apiKeyService.createApiKey(key));
+    public ResponseEntity<ApiKeyDto> createApiKey(@Valid @RequestBody ApiKeyDto dto) {
+        ApiKeyDto created = apiKeyService.createApiKey(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiKey> update(@PathVariable Long id, @RequestBody ApiKey key) {
-        return ResponseEntity.ok(apiKeyService.updateApiKey(id, key));
+    public ResponseEntity<ApiKeyDto> updateApiKey(@PathVariable Long id, @Valid @RequestBody ApiKeyDto dto) {
+        ApiKeyDto updated = apiKeyService.updateApiKey(id, dto);
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiKey> getById(@PathVariable Long id) {
+    public ResponseEntity<ApiKeyDto> getApiKeyById(@PathVariable Long id) {
         return ResponseEntity.ok(apiKeyService.getApiKeyById(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<ApiKey>> getAll() {
+    public ResponseEntity<List<ApiKeyDto>> getAllApiKeys() {
         return ResponseEntity.ok(apiKeyService.getAllApiKeys());
     }
 
@@ -45,7 +48,7 @@ public class ApiKeyController {
     }
 
     @GetMapping("/by-value/{keyValue}")
-    public ResponseEntity<ApiKey> getByValue(@PathVariable String keyValue) {
+    public ResponseEntity<ApiKeyDto> getByKeyValue(@PathVariable String keyValue) {
         return ResponseEntity.ok(apiKeyService.getApiKeyByValue(keyValue));
     }
 }
