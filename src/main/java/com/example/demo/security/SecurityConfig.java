@@ -3,9 +3,9 @@ package com.example.demo.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -27,10 +27,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // ✅ IMPORTANT: disable CSRF for APIs (Swagger POST/PUT/DELETE will work)
             .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // ✅ allow swagger + auth endpoints without login
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/auth/**",
@@ -39,10 +38,10 @@ public class SecurityConfig {
                     "/swagger-ui.html"
                 ).permitAll()
                 .anyRequest().authenticated()
-            )
+            );
 
-            // optional: keep default login page (not required, but ok)
-            .httpBasic(Customizer.withDefaults());
+        // ❌ DO NOT add httpBasic() (that causes the popup)
+        // ❌ DO NOT add formLogin()
 
         return http.build();
     }
