@@ -1,7 +1,9 @@
 package com.example.demo.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,28 +36,37 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // APIs => disable CSRF
             .csrf(csrf -> csrf.disable())
-
-            // no session (JWT only)
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // authorization rules
+            // IMPORTANT: return 401 for unauthenticated, 403 for forbidden
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((req, res, e) ->
+                    res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
+                .accessDeniedHandler((req, res, e) ->
+                    res.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden"))
+            )
+
             .authorizeHttpRequests(auth -> auth
+                // swagger + auth open
                 .requestMatchers(
                     "/auth/**",
                     "/swagger-ui/**",
-                    "/v3/api-docs/**",
-                    "/swagger-ui.html"
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**"
                 ).permitAll()
+
+                // allow OPTIONS preflight (sometimes needed)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // everything else needs JWT
                 .anyRequest().authenticated()
             )
 
-            // disable Basic & form login so popup will NOT come
-            .httpBasic(basic -> basic.disable())
-            .formLogin(form -> form.disable());
+            // no popup
+            .httpBasic(b -> b.disable())
+            .formLogin(f -> f.disable());
 
-        //  very important: read Authorization: Bearer <token>
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
