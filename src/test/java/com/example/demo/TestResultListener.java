@@ -19,4 +19,4 @@ public class TestResultListener implements ITestListener {
     public void onTestSkipped(ITestResult result) {
         System.out.println(result.getMethod().getMethodName() + " - SKIP");
     }
-}.
+}
