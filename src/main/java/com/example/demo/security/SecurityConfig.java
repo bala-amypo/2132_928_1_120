@@ -55,7 +55,7 @@ public class SecurityConfig {
             .httpBasic(basic -> basic.disable())
             .formLogin(form -> form.disable());
 
-        // ✅ very important: read Authorization: Bearer <token>
+        //  very important: read Authorization: Bearer <token>
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
