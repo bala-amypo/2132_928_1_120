@@ -13,30 +13,27 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
+    private static final String SECURITY_SCHEME_NAME = "bearerAuth";
+
     @Bean
     public OpenAPI customOpenAPI() {
 
-        final String securitySchemeName = "BearerAuth";
-
         return new OpenAPI()
-                // Server URL
+                // ✅ IMPORTANT: no trailing slash
                 .servers(List.of(
-                        new Server().url("https://9146.408procr.amypo.ai/")
+                        new Server().url("https://9146.408procr.amypo.ai")
                 ))
 
-                // 🔐 Tell Swagger that APIs need Authorization
-                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+                // ✅ Apply JWT globally to all APIs
+                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
 
-                // 🔐 Define JWT Bearer scheme
-                .components(
-                        new Components()
-                                .addSecuritySchemes(securitySchemeName,
-                                        new SecurityScheme()
-                                                .name("Authorization")
-                                                .type(SecurityScheme.Type.HTTP)
-                                                .scheme("bearer")
-                                                .bearerFormat("JWT")
-                                )
+                .components(new Components()
+                        .addSecuritySchemes(SECURITY_SCHEME_NAME,
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
+                        )
                 );
     }
 }
