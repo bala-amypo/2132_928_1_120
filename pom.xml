@@ -87,7 +87,7 @@
       <version>3.1.1</version>
     </dependency>
 
-    <!-- Spring Boot test utilities but exclude JUnit Jupiter to avoid JUnitPlatform provider -->
+    <!-- Spring Boot test utilities (we keep it) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -108,6 +108,7 @@
       </exclusions>
     </dependency>
 
+    <!-- TestNG -->
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
@@ -118,6 +119,9 @@
   </dependencies>
 
   <build>
+    <!-- IMPORTANT: your tests are inside test_saved/java (not src/test/java) -->
+    <testSourceDirectory>${project.basedir}/test_saved/java</testSourceDirectory>
+
     <plugins>
 
       <plugin>
@@ -134,7 +138,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${surefire.version}</version>
 
-        <!-- This is what forces TestNG provider -->
+        <!-- force TestNG provider -->
         <dependencies>
           <dependency>
             <groupId>org.apache.maven.surefire</groupId>
@@ -145,8 +149,10 @@
 
         <configuration>
           <useModulePath>false</useModulePath>
+
+          <!-- IMPORTANT: your suite is inside test_saved/resources -->
           <suiteXmlFiles>
-            <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+            <suiteXmlFile>${project.basedir}/test_saved/resources/testng.xml</suiteXmlFile>
           </suiteXmlFiles>
         </configuration>
       </plugin>
