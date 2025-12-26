@@ -30,7 +30,6 @@
   </properties>
 
   <dependencies>
-
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -87,7 +86,7 @@
       <version>3.1.1</version>
     </dependency>
 
-    <!-- Spring Boot test utilities (we keep it) -->
+    <!-- Spring Boot test utilities -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -101,10 +100,6 @@
           <groupId>org.junit.platform</groupId>
           <artifactId>junit-platform-launcher</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>org.junit.vintage</groupId>
-          <artifactId>junit-vintage-engine</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
 
@@ -115,14 +110,46 @@
       <version>${testng.version}</version>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 
   <build>
-    <!-- IMPORTANT: your tests are inside test_saved/java (not src/test/java) -->
-    <testSourceDirectory>${project.basedir}/test_saved/java</testSourceDirectory>
-
     <plugins>
+
+      <!-- Make Maven compile tests from test_saved/java -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>test_saved/java</source>
+              </sources>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>add-test-resource</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>add-test-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>test_saved/resources</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -133,12 +160,12 @@
         </configuration>
       </plugin>
 
+      <!-- Run TestNG using test_saved/resources/testng.xml -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${surefire.version}</version>
 
-        <!-- force TestNG provider -->
         <dependencies>
           <dependency>
             <groupId>org.apache.maven.surefire</groupId>
@@ -149,10 +176,8 @@
 
         <configuration>
           <useModulePath>false</useModulePath>
-
-          <!-- IMPORTANT: your suite is inside test_saved/resources -->
           <suiteXmlFiles>
-            <suiteXmlFile>${project.basedir}/test_saved/resources/testng.xml</suiteXmlFile>
+            <suiteXmlFile>test_saved/resources/testng.xml</suiteXmlFile>
           </suiteXmlFiles>
         </configuration>
       </plugin>
