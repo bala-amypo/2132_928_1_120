@@ -27,6 +27,7 @@
     <springdoc.version>2.1.0</springdoc.version>
     <testng.version>7.10.2</testng.version>
     <surefire.version>3.2.5</surefire.version>
+    <buildhelper.version>3.5.0</buildhelper.version>
   </properties>
 
   <dependencies>
@@ -88,28 +89,14 @@
       <version>3.1.1</version>
     </dependency>
 
-    <!-- Spring Boot Test (keep it, but exclude JUnit so TestNG is the runner) -->
+    <!-- Spring Boot Test (keep default; do NOT exclude JUnit) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.junit.platform</groupId>
-          <artifactId>junit-platform-launcher</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.junit.vintage</groupId>
-          <artifactId>junit-vintage-engine</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
-    <!-- TestNG -->
+    <!-- TestNG (so Surefire can run TestNG tests if present) -->
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
@@ -130,29 +117,42 @@
         </configuration>
       </plugin>
 
-      <!-- Run TestNG using testng.xml -->
+      <!-- IMPORTANT: add test_saved/java as test sources -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${buildhelper.version}</version>
+        <executions>
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.basedir}/test_saved/java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Surefire: NO suiteXmlFiles, let it auto-discover -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${surefire.version}</version>
-
-        <!-- Force TestNG provider -->
-        <dependencies>
-          <dependency>
-            <groupId>org.apache.maven.surefire</groupId>
-            <artifactId>surefire-testng</artifactId>
-            <version>${surefire.version}</version>
-          </dependency>
-        </dependencies>
-
         <configuration>
           <useModulePath>false</useModulePath>
           <failIfNoTests>true</failIfNoTests>
 
-          <!-- This must exist and must NOT be empty -->
-          <suiteXmlFiles>
-            <suiteXmlFile>${project.basedir}/src/test/resources/testng.xml</suiteXmlFile>
-          </suiteXmlFiles>
+          <!-- helps detect common TestNG naming patterns -->
+          <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+            <include>**/Test*.java</include>
+          </includes>
         </configuration>
       </plugin>
 
