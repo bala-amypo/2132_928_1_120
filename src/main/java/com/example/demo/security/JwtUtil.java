@@ -67,6 +67,6 @@ public class JwtUtil {
     }
 
     public long getExpirationMillis() {
-        return expirationMillis;
+        return expirationMillis > 0 ? expirationMillis : 3600000L;
     }
 }
