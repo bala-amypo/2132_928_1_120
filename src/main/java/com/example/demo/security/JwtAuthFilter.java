@@ -21,72 +21,82 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
-    public JwtAuthFilter(JwtUtil jwtUtil,
-                         UserDetailsService userDetailsService) {
+    // turn ON only when debugging
+    private static final boolean DEBUG = false;
+
+    public JwtAuthFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
 
-    // Skip JWT check for public endpoints
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
 
+        // Skip auth + swagger + openapi endpoints
         return path.startsWith("/auth/")
                 || path.startsWith("/swagger-ui")
                 || path.equals("/swagger-ui.html")
                 || path.startsWith("/v3/api-docs")
-                || path.contains("swagger-config");
+                || path.startsWith("/api-docs")              // if your app uses /api-docs
+                || path.contains("swagger-config");          // extra safety
     }
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
+        if (DEBUG) {
+            System.out.println("JWT FILTER PATH: " + request.getServletPath());
+            System.out.println("JWT FILTER AUTH HEADER: " + authHeader);
+        }
+
+        // If no header or not Bearer, continue (Spring will handle 401 if endpoint needs auth)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
+        String token = authHeader.substring(7).trim();
 
         try {
-            String username = jwtUtil.getUsername(token);
+            String username = jwtUtil.getUsername(token); // subject (email)
 
-            if (username != null &&
-                SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (DEBUG) System.out.println("JWT USERNAME (SUB): " + username);
 
-                UserDetails userDetails =
-                        userDetailsService.loadUserByUsername(username);
+            // set auth only when not already authenticated and username exists
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                // ✅ FIXED CALL
-                if (jwtUtil.isTokenValid(token, userDetails)) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
+                boolean valid = jwtUtil.isTokenValid(token, userDetails.getUsername());
+
+                if (DEBUG) {
+                    System.out.println("DB USERNAME: " + userDetails.getUsername());
+                    System.out.println("JWT VALID: " + valid);
+                }
+
+                if (valid) {
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
-                                    userDetails.getAuthorities());
+                                    userDetails.getAuthorities()
+                            );
 
-                    authentication.setDetails(
-                            new WebAuthenticationDetailsSource()
-                                    .buildDetails(request));
-
-                    SecurityContextHolder.getContext()
-                            .setAuthentication(authentication);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
 
-        } catch (Exception ex) {
-            SecurityContextHolder.clearContext();
+        } catch (Exception e) {
+            // Invalid token -> do nothing; security will return 401 for protected APIs
+            if (DEBUG) e.printStackTrace();
         }
 
         filterChain.doFilter(request, response);
     }
 }
-
