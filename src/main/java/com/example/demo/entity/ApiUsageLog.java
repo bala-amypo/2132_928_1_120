@@ -35,7 +35,6 @@ public class ApiUsageLog {
     public Instant getTimestamp() { return timestamp; }
     public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
 
-    // aliases (some of your earlier code expected these)
     public Instant getRequestTimestamp() { return timestamp; }
     public void setRequestTimestamp(Instant ts) { this.timestamp = ts; }
 

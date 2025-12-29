@@ -18,13 +18,12 @@ public class KeyExemptionController {
         this.exemptionService = exemptionService;
     }
 
-    // CREATE
+   
     @PostMapping
     public ResponseEntity<KeyExemption> createExemption(@Valid @RequestBody KeyExemption dto) {
         return ResponseEntity.ok(exemptionService.createExemption(dto));
     }
 
-    // UPDATE by apiKeyId
     @PutMapping("/key/{apiKeyId}")
     public ResponseEntity<KeyExemption> updateExemption(
             @PathVariable Long apiKeyId,
@@ -33,13 +32,13 @@ public class KeyExemptionController {
         return ResponseEntity.ok(exemptionService.updateExemption(apiKeyId, dto));
     }
 
-    // GET by apiKeyId
+   
     @GetMapping("/key/{apiKeyId}")
     public ResponseEntity<KeyExemption> getExemptionByKey(@PathVariable Long apiKeyId) {
         return ResponseEntity.ok(exemptionService.getExemptionByKey(apiKeyId));
     }
 
-    // GET ALL
+
     @GetMapping
     public ResponseEntity<List<KeyExemption>> getAllExemptions() {
         return ResponseEntity.ok(exemptionService.getAllExemptions());
