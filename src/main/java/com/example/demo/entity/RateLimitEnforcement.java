@@ -13,7 +13,7 @@ public class RateLimitEnforcement {
     @ManyToOne(optional = false)
     private ApiKey apiKey;
 
-    // test uses setLimitExceededBy(int)
+    
     private int limitExceededBy;
 
     private String message;
