@@ -11,7 +11,7 @@ public class QuotaPlan {
 
     private String planName;
 
-    // test uses setDailyLimit(int)
+   
     private int dailyLimit;
 
     private boolean active = true;

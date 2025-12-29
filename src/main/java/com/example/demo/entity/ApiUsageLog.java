@@ -15,10 +15,10 @@ public class ApiUsageLog {
 
     private String endpoint;
 
-    // test uses setTimestamp/getTimestamp
+   
     private Instant timestamp;
 
-    // (extra aliases to avoid earlier compile errors in your project)
+    
     private String method;
     private boolean success;
     private int responseCode;

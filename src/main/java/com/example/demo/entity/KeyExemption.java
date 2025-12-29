@@ -13,12 +13,11 @@ public class KeyExemption {
     @ManyToOne(optional = false)
     private ApiKey apiKey;
 
-    // test uses setTemporaryExtensionLimit(int)
+   
     private int temporaryExtensionLimit;
 
     private Instant validUntil;
 
-    // extra for compatibility
     private boolean exempted = true;
     private String reason;
 
