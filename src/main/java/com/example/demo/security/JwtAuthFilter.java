@@ -29,9 +29,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-
-        // Skip auth + swagger + openapi endpoints
+        String path = request.getServletPath()
         return path.startsWith("/auth/")
                 || path.startsWith("/swagger-ui")
                 || path.equals("/swagger-ui.html")
