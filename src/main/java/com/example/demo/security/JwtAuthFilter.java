@@ -20,8 +20,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
-
-    // turn ON only when debugging
     private static final boolean DEBUG = false;
 
     public JwtAuthFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
@@ -38,8 +36,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 || path.startsWith("/swagger-ui")
                 || path.equals("/swagger-ui.html")
                 || path.startsWith("/v3/api-docs")
-                || path.startsWith("/api-docs")              // if your app uses /api-docs
-                || path.contains("swagger-config");          // extra safety
+                || path.startsWith("/api-docs")              
+                || path.contains("swagger-config");          
     }
 
     @Override
@@ -67,7 +65,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             if (DEBUG) System.out.println("JWT USERNAME (SUB): " + username);
 
-            // set auth only when not already authenticated and username exists
+            
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -93,7 +91,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
-            // Invalid token -> do nothing; security will return 401 for protected APIs
+            
             if (DEBUG) e.printStackTrace();
         }
 
